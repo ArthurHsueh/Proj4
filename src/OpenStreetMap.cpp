@@ -18,7 +18,7 @@ struct COpenStreetMap::SImplementation{
 
     struct SNode: public CStreetMap::SNode{
         TNodeID DID; //Store the Node ID
-        TLocation DLocation; //Store the location of the Node as (latitude, longitude)
+        SLocation DLocation; //Store the location of the Node as (latitude, longitude)
         std::vector<std::string> DAttributesByIndex; //Store the attributes' key by index  
         std::unordered_map<std::string, std::string> DAttributesByKey; //Store the attributes' by key, value pair 
 
@@ -27,7 +27,7 @@ struct COpenStreetMap::SImplementation{
             return DID;
         }
 
-        TLocation Location() const noexcept override{ //Returns the (latitude, longitude) of the Node
+        SLocation Location() const noexcept override{ //Returns the (latitude, longitude) of the Node
             return DLocation;
         }
 
@@ -133,7 +133,7 @@ struct COpenStreetMap::SImplementation{
                 auto NodeLon = std::stod(TempEntity.AttributeValue(DNodeLonAttr));
                 auto NewNode = std::make_shared<SNode>(); //Create the new node
                 NewNode->DID = NodeID; //Set the ID
-                NewNode->DLocation = std::make_pair(NodeLat,NodeLon); //Set the location
+                NewNode->DLocation = {NodeLat,NodeLon}; //Set the location
                 DNodesByIndex.push_back(NewNode); //Push the node into the vector
                 DNodesByID[NodeID] = NewNode; //Push the (id, node) pair into the unordered_map
 
