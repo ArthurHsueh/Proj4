@@ -301,7 +301,7 @@ TEST(OSMTest, LongFile){
     ASSERT_NE(TempNode,nullptr);
     EXPECT_EQ(TempNode, OpenStreetMap.NodeByID(TempNode->ID()));
     EXPECT_EQ(TempNode->ID(),95710049);
-    auto TempLocation = CStreetMap::SLocation{38.5553012,-121.787628};
+    auto TempLocation = CStreetMap::SLocation{38.5553012,-121.7876287};
     EXPECT_EQ(TempNode->Location(), TempLocation);
     EXPECT_EQ(TempNode->AttributeCount(), 1);
     EXPECT_EQ(TempNode->GetAttributeKey(0), "highway");

@@ -191,3 +191,16 @@ TEST(CSVBusSystemIndexer, RouteBetweenNodeIDsTest){
     CBusSystemIndexer BusSystemIndexer(BusSystem);
     EXPECT_TRUE(BusSystemIndexer.RouteBetweenNodeIDs(101, 102));
 }
+
+
+//tests the bounds of sortedstopbyindex and sortedroutebyindex, ensures it returns nullptr when index is out of bounds
+TEST(CSVBusSystemIndexer, OutOfBoundsCheckTest){
+    auto InStreamStops = std::make_shared<CStringDataSource>("stop_id,node_id\n1,101\n2,102");
+    auto InStreamRoutes = std::make_shared<CStringDataSource>("route,stop_id\nA,1\nA,2");
+    auto CSVReaderStops = std::make_shared<CDSVReader>(InStreamStops,',');
+    auto CSVReaderRoutes = std::make_shared<CDSVReader>(InStreamRoutes,',');
+    auto BusSystem = std::make_shared<CCSVBusSystem>(CSVReaderStops, CSVReaderRoutes);
+    CBusSystemIndexer BusSystemIndexer(BusSystem);
+    EXPECT_EQ(BusSystemIndexer.SortedStopByIndex(99), nullptr);
+    EXPECT_EQ(BusSystemIndexer.SortedRouteByIndex(99), nullptr);
+}
