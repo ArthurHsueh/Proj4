@@ -1,5 +1,4 @@
 # CBusSystem
-# CBusSystem
 
 This class defines an abstract interface for a bus system. It provides a blueprint for the any bus system implementation, and defines the structure for stops and routes. A stop represents a physical bus stop, and is expressed with a node on the street map. A route represents an ordered sequence of stops that a bus stops through.
 

@@ -67,22 +67,22 @@ struct CBusSystemIndexer::SImplementation{
     }
 
     std::shared_ptr<SStop> SortedStopByIndex(std::size_t index) const noexcept{
-        if(index >= DSortedStopsByIndex.size()){
+        if(index >= StopCount()){ //if index is greater than equal to stop count, return nullptr
             return nullptr;
         }
-        return DSortedStopsByIndex[index]; // do a check 
+        return DSortedStopsByIndex[index];
     }
 
     std::shared_ptr<SRoute> SortedRouteByIndex(std::size_t index) const noexcept{
-        if(index >= DSortedRoutesByIndex.size()){
+        if(index >= RouteCount()){ //if index is greater than equal to route count, return nullptr
             return nullptr;
         }
-        return DSortedRoutesByIndex[index]; // do a check
+        return DSortedRoutesByIndex[index];
     }
 
-    std::shared_ptr<SStop> StopByNodeID(TNodeID id) const noexcept{
-        auto Search = DStopsByNodeID.find(id);
-        if(Search != DStopsByNodeID.end()){
+    std::shared_ptr<SStop> StopByNodeID(TNodeID id) const noexcept{ 
+        auto Search = DStopsByNodeID.find(id); 
+        if(Search != DStopsByNodeID.end()){ //go through the stops to find the node id, if found return the stop, otherwise return nullptr
             return Search->second;
         }
         return nullptr;
