@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="3" disabled="0" errors="0" time="0." timestamp="2026-03-10T09:20:05.734" name="AllTests">
+  <testsuite name="CSVBusSystemIndexer" tests="10" failures="3" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-10T09:20:05.734">
+    <testcase name="SimpleTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="13" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="StopTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="29" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer">
+      <failure message="testsrc/CSVBusSystemIndexerTest.cpp:43&#x0A;Expected equality of these values:&#x0A;  Stop1Index&#x0A;    Which is: (ptr = 0xaaab15118a30, value = 8-byte object &lt;98-E0 CF-DA AA-AA 00-00&gt;)&#x0A;  Stop1Node&#x0A;    Which is: (nullptr)&#x0A;" type=""><![CDATA[testsrc/CSVBusSystemIndexerTest.cpp:43
+Expected equality of these values:
+  Stop1Index
+    Which is: (ptr = 0xaaab15118a30, value = 8-byte object <98-E0 CF-DA AA-AA 00-00>)
+  Stop1Node
+    Which is: (nullptr)
+]]></failure>
+      <failure message="testsrc/CSVBusSystemIndexerTest.cpp:49&#x0A;Expected equality of these values:&#x0A;  Stop2Index&#x0A;    Which is: (ptr = 0xaaab151189b0, value = 8-byte object &lt;98-E0 CF-DA AA-AA 00-00&gt;)&#x0A;  Stop2Node&#x0A;    Which is: (nullptr)&#x0A;" type=""><![CDATA[testsrc/CSVBusSystemIndexerTest.cpp:49
+Expected equality of these values:
+  Stop2Index
+    Which is: (ptr = 0xaaab151189b0, value = 8-byte object <98-E0 CF-DA AA-AA 00-00>)
+  Stop2Node
+    Which is: (nullptr)
+]]></failure>
+    </testcase>
+    <testcase name="RouteTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="55" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="StopCountTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="95" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="RouteCountTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="107" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="SortedStopByIndexTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="119" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="SortedRouteByIndexTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="133" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="StopByNodeIDTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="151" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer">
+      <failure message="testsrc/CSVBusSystemIndexerTest.cpp:161&#x0A;Value of: bool(Stop)&#x0A;  Actual: false&#x0A;Expected: true&#x0A;" type=""><![CDATA[testsrc/CSVBusSystemIndexerTest.cpp:161
+Value of: bool(Stop)
+  Actual: false
+Expected: true
+]]></failure>
+    </testcase>
+    <testcase name="RoutesByNodeIDsTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="165" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer" />
+    <testcase name="RouteBetweenNodeIDsTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="181" status="run" result="completed" time="0." timestamp="2026-03-10T09:20:05.734" classname="CSVBusSystemIndexer">
+      <failure message="testsrc/CSVBusSystemIndexerTest.cpp:192&#x0A;Value of: BusSystemIndexer.RouteBetweenNodeIDs(101, 102)&#x0A;  Actual: false&#x0A;Expected: true&#x0A;" type=""><![CDATA[testsrc/CSVBusSystemIndexerTest.cpp:192
+Value of: BusSystemIndexer.RouteBetweenNodeIDs(101, 102)
+  Actual: false
+Expected: true
+]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>
