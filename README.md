@@ -15,3 +15,4 @@ unordered map in C++ https://www.geeksforgeeks.org/cpp/unordered_map-in-cpp-stl/
 Dijkstra's algorithm https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
 Dijkstra's algorithm in C++ https://www.geeksforgeeks.org/dsa/dijkstras-shortest-path-algorithm-greedy-algo-7/
 Haversine formula https://en.wikipedia.org/wiki/Haversine_formula 
+std::stod https://www.geeksforgeeks.org/cpp/stdstod-stdstof-stdstold-c/

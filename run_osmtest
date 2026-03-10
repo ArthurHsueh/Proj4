@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="8" failures="0" disabled="0" errors="0" time="0.001" timestamp="2026-03-10T21:52:01.820" name="AllTests">
-  <testsuite name="OSMTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-03-10T21:52:01.820">
-    <testcase name="SimpleFiles" file="testsrc/OpenStreetMapTest.cpp" line="8" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.820" classname="OSMTest" />
-    <testcase name="MediumFile" file="testsrc/OpenStreetMapTest.cpp" line="69" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.820" classname="OSMTest" />
-    <testcase name="LongFile" file="testsrc/OpenStreetMapTest.cpp" line="214" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.821" classname="OSMTest" />
-    <testcase name="MissingWayFile" file="testsrc/OpenStreetMapTest.cpp" line="506" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.821" classname="OSMTest" />
-    <testcase name="MissingNodeID" file="testsrc/OpenStreetMapTest.cpp" line="522" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.821" classname="OSMTest" />
-    <testcase name="MissingWayID" file="testsrc/OpenStreetMapTest.cpp" line="545" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.821" classname="OSMTest" />
-    <testcase name="LessThanTwoNodes" file="testsrc/OpenStreetMapTest.cpp" line="568" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.821" classname="OSMTest" />
-    <testcase name="EmptyFile" file="testsrc/OpenStreetMapTest.cpp" line="589" status="run" result="completed" time="0." timestamp="2026-03-10T21:52:01.821" classname="OSMTest" />
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="0.001" timestamp="2026-03-10T22:55:40.839" name="AllTests">
+  <testsuite name="OSMTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-03-10T22:55:40.839">
+    <testcase name="SimpleFiles" file="testsrc/OpenStreetMapTest.cpp" line="8" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.839" classname="OSMTest" />
+    <testcase name="MediumFile" file="testsrc/OpenStreetMapTest.cpp" line="69" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.839" classname="OSMTest" />
+    <testcase name="LongFile" file="testsrc/OpenStreetMapTest.cpp" line="214" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.840" classname="OSMTest" />
+    <testcase name="MissingWayFile" file="testsrc/OpenStreetMapTest.cpp" line="506" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.840" classname="OSMTest" />
+    <testcase name="MissingNodeID" file="testsrc/OpenStreetMapTest.cpp" line="522" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.840" classname="OSMTest" />
+    <testcase name="MissingWayID" file="testsrc/OpenStreetMapTest.cpp" line="545" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.840" classname="OSMTest" />
+    <testcase name="LessThanTwoNodes" file="testsrc/OpenStreetMapTest.cpp" line="568" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.840" classname="OSMTest" />
+    <testcase name="EmptyFile" file="testsrc/OpenStreetMapTest.cpp" line="589" status="run" result="completed" time="0." timestamp="2026-03-10T22:55:40.840" classname="OSMTest" />
   </testsuite>
 </testsuites>

@@ -35,8 +35,8 @@ struct CDijkstraTransportationPlanner::SImplementation{
         }
     };
 
-    // When reconstructing the fastest path, we need to know which transport mode was used on each edge.
-    // Bike edges overwrite walk for the same pair since bike is always faster on the same road.
+    //when reconstructing the fastest path, we need to know which transport mode was used on each edge
+    //bike edges overwrite walk for the same pair since bike is always faster on the same road
     std::unordered_map<std::pair<CPathRouter::TVertexID, CPathRouter::TVertexID>, ETransportationMode, SEdgePairHash> DFastestEdgeModes;
     std::unordered_map<std::pair<TNodeID, TNodeID>, std::string, SNodeIDPairHash> DEdgeStreetName; //street name for each directed road edge
     std::unordered_map<std::pair<TNodeID, TNodeID>, double, SNodeIDPairHash> DEdgeSpeedLimit; //speed limit for each directed road edge
@@ -44,41 +44,49 @@ struct CDijkstraTransportationPlanner::SImplementation{
     SImplementation(std::shared_ptr<SConfiguration> config) : DBusSystemIndexer(config->BusSystem()){
         DConfiguration = config;
 
-        // Collect all nodes from the street map into DSortedNodes
+        //get all nodes from the street map into DSortedNodes
         for(size_t Index = 0; Index < DConfiguration->StreetMap()->NodeCount(); Index++){
             DSortedNodes.push_back(DConfiguration->StreetMap()->NodeByIndex(Index));
         }
-        // Sort nodes by ID so SortedNodeByIndex works correctly
+        //sort nodes by ID so SortedNodeByIndex works correctly
         std::sort(DSortedNodes.begin(), DSortedNodes.end(), [](std::shared_ptr<CStreetMap::SNode> l, std::shared_ptr<CStreetMap::SNode> r) -> bool{
             return l->ID() < r->ID();
         });
 
-        // Register every node as a vertex in both routers before adding any edges
+        //register every node as a vertex in both routers for CDijkstraPathRouter
         for(size_t Index = 0; Index < DSortedNodes.size(); Index++){
             auto Node = DSortedNodes[Index];
             DShortestNodeToVertex[Node->ID()] = DShortestPathRouter.AddVertex(Node->ID());
             DFastestNodeToVertex[Node->ID()] = DFastestPathRouter.AddVertex(Node->ID());
         }
 
-        // Build the shortest path graph with edges weighted by distance.
-        // Also fills DEdgeStreetName and DEdgeSpeedLimit for use in bus timing and path description
-        for(size_t WayIndex = 0; WayIndex < DConfiguration->StreetMap()->WayCount(); WayIndex++){
-            auto Way = DConfiguration->StreetMap()->WayByIndex(WayIndex);
+        //build the shortest path graph with edges weighted by distance
+        //also fill DEdgeStreetName and DEdgeSpeedLimit for use in bus timing and path description
+        for(size_t WayIndex = 0; WayIndex < DConfiguration->StreetMap()->WayCount(); WayIndex++){ //for each way in the street map
+            auto Way = DConfiguration->StreetMap()->WayByIndex(WayIndex); //grab each way
+
+            //read rules of the way
             bool IsOneWay = Way->HasAttribute("oneway") && Way->GetAttribute("oneway") == "yes"; //one-way streets only allow forward travel
             std::string Name = ""; //default to no name if the way doesn't have one
             if(Way->HasAttribute("name")){
                 Name = Way->GetAttribute("name");
             }
-            double SpeedLimit = DConfiguration->DefaultSpeedLimit(); //use default if not specified
+            double SpeedLimit = DConfiguration->DefaultSpeedLimit(); //use default of 25mph if not specified
             if(Way->HasAttribute("maxspeed")){
-                SpeedLimit = std::stod(Way->GetAttribute("maxspeed")); 
+                SpeedLimit = std::stod(Way->GetAttribute("maxspeed"));
             }
+            
+            //iterate over the nodes inside the way
             for(size_t Index = 1; Index < Way->NodeCount(); Index++){
-                auto FirstNodeID = Way->GetNodeID(Index-1);
-                auto SecondNodeID = Way->GetNodeID(Index);
-                auto FirstNode = DConfiguration->StreetMap()->NodeByID(FirstNodeID);
+                auto FirstNodeID = Way->GetNodeID(Index-1); //get id of node, index-1 for the previous node
+                auto SecondNodeID = Way->GetNodeID(Index); 
+                
+                auto FirstNode = DConfiguration->StreetMap()->NodeByID(FirstNodeID); //get the actual node by id
                 auto SecondNode = DConfiguration->StreetMap()->NodeByID(SecondNodeID);
+
+                //calculate distance between the 2 nodes, use haversine because the world is round
                 auto Distance = SGeographicUtils::HaversineDistanceInMiles(FirstNode->Location(), SecondNode->Location());
+
                 auto FirstVertexID = DShortestNodeToVertex[FirstNodeID];
                 auto SecondVertexID = DShortestNodeToVertex[SecondNodeID];
                 DShortestPathRouter.AddEdge(FirstVertexID, SecondVertexID, Distance); //forward edge always added
@@ -92,26 +100,39 @@ struct CDijkstraTransportationPlanner::SImplementation{
             }
         }
 
-        // Build the fastest path graph with edges weighted by time (distance / speed).
-        // Walk edges always go both directions regardless of oneway.
-        // Bike edges only go forward on one-way streets, and are skipped if bicycle=no.
-        // Bike overwrites walk in DFastestEdgeModes for the same edge since bike is always faster.
+        //build the fastest path graph with edges weighted by time (distance / speed)
+        //walk edges always go both directions regardless of oneway
+        //bike edges only go forward on one-way streets and are skipped if bicycle=no
+        //bike overwrites walk in DFastestEdgeModes for the same edge since bike is always faster
         for(size_t WayIndex = 0; WayIndex < DConfiguration->StreetMap()->WayCount(); WayIndex++){
-            auto Way = DConfiguration->StreetMap()->WayByIndex(WayIndex);
-            bool IsOneWay = Way->HasAttribute("oneway") && Way->GetAttribute("oneway") == "yes";
-            bool NoBike = Way->HasAttribute("bicycle") && Way->GetAttribute("bicycle") == "no"; //some roads explicitly ban bikes
+            auto Way = DConfiguration->StreetMap()->WayByIndex(WayIndex); //grab each way
+            
+            //read rules of the way
+            bool IsOneWay = Way->HasAttribute("oneway") && Way->GetAttribute("oneway") == "yes"; //one-way streets only allow forward travel
+            bool NoBike = Way->HasAttribute("bicycle") && Way->GetAttribute("bicycle") == "no"; //some ways explicitly ban bikes
+
+            //iterate over the nodes inside the way
             for(size_t Index = 1; Index < Way->NodeCount(); Index++){
-                auto FirstNodeID = Way->GetNodeID(Index-1); //index-1 for the previous node or start of edge
+                auto FirstNodeID = Way->GetNodeID(Index-1); //get id of node, index-1 for the previous node 
                 auto SecondNodeID = Way->GetNodeID(Index);
-                auto FirstNode = DConfiguration->StreetMap()->NodeByID(FirstNodeID);
+
+                auto FirstNode = DConfiguration->StreetMap()->NodeByID(FirstNodeID); //get the actual node by id
                 auto SecondNode = DConfiguration->StreetMap()->NodeByID(SecondNodeID);
+
+                //calculate distance between the 2 nodes, use haversine because the world is round
                 auto Distance = SGeographicUtils::HaversineDistanceInMiles(FirstNode->Location(), SecondNode->Location());
+
+                //path router uses vertex IDs so convert from node ID to vertex ID
                 auto FirstVertexID = DFastestNodeToVertex[FirstNodeID];
                 auto SecondVertexID = DFastestNodeToVertex[SecondNodeID];
-                double WalkTime = Distance / DConfiguration->WalkSpeed();
+
+                //convert distance to walking time
+                double WalkTime = Distance / DConfiguration->WalkSpeed(); //divide by walk speed which is 3mph
+                
+                //add walk edges
                 DFastestPathRouter.AddEdge(FirstVertexID, SecondVertexID, WalkTime); //walk forward
                 DFastestEdgeModes[{FirstVertexID, SecondVertexID}] = ETransportationMode::Walk;
-                DFastestPathRouter.AddEdge(SecondVertexID, FirstVertexID, WalkTime); //walk backward (always allowed)
+                DFastestPathRouter.AddEdge(SecondVertexID, FirstVertexID, WalkTime); //walk backward
                 DFastestEdgeModes[{SecondVertexID, FirstVertexID}] = ETransportationMode::Walk;
                 if(!NoBike){ //only add bike edges if biking is allowed on this road
                     double BikeTime = Distance / DConfiguration->BikeSpeed();

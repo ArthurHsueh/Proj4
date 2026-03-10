@@ -277,4 +277,90 @@ TEST(CSVBusSystemIndexer, SingleStopRouteTest){
     std::unordered_set<std::shared_ptr<CBusSystem::SRoute>> Routes;
     EXPECT_FALSE(BusSystemIndexer.RoutesByNodeIDs(101, 102, Routes));
     EXPECT_FALSE(BusSystemIndexer.RouteBetweenNodeIDs(101, 102));
+    EXPECT_EQ(BusSystemIndexer.StopCount(), 2);
+}
+
+TEST(CSVBusSystemIndexer, LongTest){
+    auto InStreamStops = std::make_shared<CStringDataSource>("stop_id,node_id\n"
+                                                            "3,103\n"
+                                                            "1,101\n"
+                                                            "4,104\n"
+                                                            "2,102");
+    auto InStreamRoutes = std::make_shared<CStringDataSource>("route,stop_id\n"
+                                                             "C,1\n"
+                                                             "C,2\n"
+                                                             "C,3\n"
+                                                             "B,3\n"
+                                                             "B,4\n"
+                                                             "B,1\n"
+                                                             "A,2\n"
+                                                             "A,3\n"
+                                                             "A,4");
+    auto CSVReaderStops = std::make_shared<CDSVReader>(InStreamStops,',');
+    auto CSVReaderRoutes = std::make_shared<CDSVReader>(InStreamRoutes,',');
+    auto BusSystem = std::make_shared<CCSVBusSystem>(CSVReaderStops, CSVReaderRoutes);
+    CBusSystemIndexer BusSystemIndexer(BusSystem);
+
+    EXPECT_EQ(BusSystemIndexer.StopCount(), 4);
+    EXPECT_EQ(BusSystemIndexer.RouteCount(), 3);
+
+    auto Stop0 = BusSystemIndexer.SortedStopByIndex(0);
+    auto Stop1 = BusSystemIndexer.SortedStopByIndex(1);
+    auto Stop2 = BusSystemIndexer.SortedStopByIndex(2);
+    auto Stop3 = BusSystemIndexer.SortedStopByIndex(3);
+    ASSERT_TRUE(bool(Stop0));
+    ASSERT_TRUE(bool(Stop1));
+    ASSERT_TRUE(bool(Stop2));
+    ASSERT_TRUE(bool(Stop3));
+    EXPECT_EQ(Stop0->ID(), 1);
+    EXPECT_EQ(Stop1->ID(), 2);
+    EXPECT_EQ(Stop2->ID(), 3);
+    EXPECT_EQ(Stop3->ID(), 4);
+
+    auto Route0 = BusSystemIndexer.SortedRouteByIndex(0);
+    auto Route1 = BusSystemIndexer.SortedRouteByIndex(1);
+    auto Route2 = BusSystemIndexer.SortedRouteByIndex(2);
+    ASSERT_TRUE(bool(Route0));
+    ASSERT_TRUE(bool(Route1));
+    ASSERT_TRUE(bool(Route2));
+    EXPECT_EQ(Route0->Name(), "A");
+    EXPECT_EQ(Route1->Name(), "B");
+    EXPECT_EQ(Route2->Name(), "C");
+
+    auto StopNode101 = BusSystemIndexer.StopByNodeID(101);
+    auto StopNode102 = BusSystemIndexer.StopByNodeID(102);
+    auto StopNode103 = BusSystemIndexer.StopByNodeID(103);
+    auto StopNode104 = BusSystemIndexer.StopByNodeID(104);
+    ASSERT_TRUE(bool(StopNode101));
+    ASSERT_TRUE(bool(StopNode102));
+    ASSERT_TRUE(bool(StopNode103));
+    ASSERT_TRUE(bool(StopNode104));
+    EXPECT_EQ(StopNode101->ID(), 1);
+    EXPECT_EQ(StopNode102->ID(), 2);
+    EXPECT_EQ(StopNode103->ID(), 3);
+    EXPECT_EQ(StopNode104->ID(), 4);
+
+    EXPECT_EQ(BusSystemIndexer.StopByNodeID(999), nullptr);
+
+    EXPECT_EQ(BusSystemIndexer.SortedStopByIndex(4), nullptr);
+    EXPECT_EQ(BusSystemIndexer.SortedRouteByIndex(3), nullptr);
+
+    std::unordered_set<std::shared_ptr<CBusSystem::SRoute>> Routes;
+    EXPECT_TRUE(BusSystemIndexer.RoutesByNodeIDs(101, 102, Routes));
+    EXPECT_EQ(Routes.size(), 1);
+    EXPECT_TRUE(Routes.find(Route2) != Routes.end());
+
+    Routes.clear();
+    EXPECT_TRUE(BusSystemIndexer.RoutesByNodeIDs(102, 103, Routes));
+    EXPECT_EQ(Routes.size(), 2); 
+    EXPECT_TRUE(Routes.find(Route0) != Routes.end()); 
+    EXPECT_TRUE(Routes.find(Route2) != Routes.end()); 
+    Routes.clear();
+    EXPECT_FALSE(BusSystemIndexer.RoutesByNodeIDs(102, 101, Routes));
+
+    EXPECT_TRUE(BusSystemIndexer.RouteBetweenNodeIDs(101, 102));
+    EXPECT_TRUE(BusSystemIndexer.RouteBetweenNodeIDs(103, 104));
+    EXPECT_FALSE(BusSystemIndexer.RouteBetweenNodeIDs(101, 999));
+    EXPECT_FALSE(BusSystemIndexer.RouteBetweenNodeIDs(999, 101)); 
+    EXPECT_FALSE(BusSystemIndexer.RouteBetweenNodeIDs(102, 101)); 
 }
