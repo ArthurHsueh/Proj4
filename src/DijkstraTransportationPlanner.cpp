@@ -23,7 +23,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
         size_t operator()(const std::pair<CPathRouter::TVertexID, CPathRouter::TVertexID> &p) const{
             size_t First = p.first;
             size_t Second = p.second;
-            return First ^ (Second << 32);
+            return First * 1000003 + Second;
         }
     };
 
@@ -31,7 +31,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
         size_t operator()(const std::pair<TNodeID, TNodeID> &p) const{
             size_t First = p.first;
             size_t Second = p.second;
-            return First ^ (Second << 32);
+            return First * 1000003 + Second;
         }
     };
 
@@ -84,7 +84,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 auto FirstNode = DConfiguration->StreetMap()->NodeByID(FirstNodeID); //get the actual node by id
                 auto SecondNode = DConfiguration->StreetMap()->NodeByID(SecondNodeID);
 
-                //calculate distance between the 2 nodes, use haversine because the world is round
+                //calculate distance between the 2 nodes, use haversine because the world is round!!
                 auto Distance = SGeographicUtils::HaversineDistanceInMiles(FirstNode->Location(), SecondNode->Location());
 
                 auto FirstVertexID = DShortestNodeToVertex[FirstNodeID];
@@ -92,7 +92,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 DShortestPathRouter.AddEdge(FirstVertexID, SecondVertexID, Distance); //forward edge always added
                 DEdgeStreetName[{FirstNodeID, SecondNodeID}] = Name;
                 DEdgeSpeedLimit[{FirstNodeID, SecondNodeID}] = SpeedLimit;
-                if(!IsOneWay){ //two-way street: also add the reverse edge
+                if(!IsOneWay){ //two-way street, also add the reverse edge
                     DShortestPathRouter.AddEdge(SecondVertexID, FirstVertexID, Distance);
                     DEdgeStreetName[{SecondNodeID, FirstNodeID}] = Name;
                     DEdgeSpeedLimit[{SecondNodeID, FirstNodeID}] = SpeedLimit;
@@ -180,6 +180,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 }
                 auto PrevVertexID = DFastestNodeToVertex[PrevStop->NodeID()];
                 auto CurrVertexID = DFastestNodeToVertex[CurrStop->NodeID()];
+                BusTime += DConfiguration->BusStopTime() / 3600.0; // add bus stop time per edge
                 DFastestPathRouter.AddEdge(PrevVertexID, CurrVertexID, BusTime);
                 DFastestEdgeModes[{PrevVertexID, CurrVertexID}] = ETransportationMode::Bus;
             }
@@ -233,7 +234,6 @@ struct CDijkstraTransportationPlanner::SImplementation{
             return CPathRouter::NoPathExists;
         }
 
-        bool BoardedBus = false;
         for(size_t i = 0; i < VertexPath.size(); i++){
             auto NodeID = std::any_cast<TNodeID>(DFastestPathRouter.GetVertexTag(VertexPath[i]));
             if(i == 0){ //if first step is the starting node
@@ -254,14 +254,6 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 
                 if(ModeIt != DFastestEdgeModes.end()){
                     Mode = ModeIt->second;
-                }
-
-                if(Mode == ETransportationMode::Bus && !BoardedBus){ //If bus and we haven't boarded yet 
-                    Time += DConfiguration->BusStopTime() / 3600.0; // one-time boarding penalty
-                    BoardedBus = true;
-                }
-                else if(Mode != ETransportationMode::Bus){
-                    BoardedBus = false; // reset if they get off the bus
                 }
                 path.push_back({Mode, NodeID});
 
