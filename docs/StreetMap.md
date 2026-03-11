@@ -4,9 +4,7 @@ This abstract class (interface) defines the SNode and SWay structs used to store
 
 ## Constructor
 
-#### **COpenStreetMap::COpenStreetMap(std::shared_ptr<CXMLReader> src)**
-
-The Parser accepts a shared pointer to an XML Reader object for its constructor, allowing it parse through the OSM file and store and return the parsed data safety.
+This abstract class has no explicit constructor
 
 ## Structs
 

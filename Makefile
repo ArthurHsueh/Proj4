@@ -25,10 +25,10 @@ LDFLAGS			= `pkg-config --libs $(PKGS)`
 
 TEST_CFLAGS		= $(CFLAGS) -O0 -g --coverage
 TEST_CPPFLAGS	= $(CPPFLAGS) -fno-inline
-TEST_LDFLAGS	= $(LDFLAGS) -lgtest -lgtest_main -lpthread
+TEST_LDFLAGS	= $(LDFLAGS) -lgmock -lgtest -lgtest_main -lpthread
 
 # Define the test object files
-TEST_STR_OBJ_FILES	= $(TESTOBJ_DIR)/StringUtilsTest.o $(TESTOBJ_DIR)/StringUtils.o
+TEST_STR_OBJ_FILES = $(TESTOBJ_DIR)/StringUtilsTest.o $(TESTOBJ_DIR)/StringUtils.o
 TEST_STRSRC_OBJ_FILES = $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/StringDataSourceTest.o
 TEST_STRSINK_OBJ_FILES = $(TESTOBJ_DIR)/StringDataSink.o $(TESTOBJ_DIR)/StringDataSinkTest.o
 TEST_FILESS_OBJ_FILES = $(TESTOBJ_DIR)/FileDataFactory.o $(TESTOBJ_DIR)/FileDataSource.o $(TESTOBJ_DIR)/FileDataSink.o $(TESTOBJ_DIR)/FileDataSSTest.o
