@@ -4,7 +4,7 @@ This abstract class provides the interface for implementing the CDijkstaPathRout
 
 ## Constructor
 
-This abstract class has no explicit construcotr
+This abstract class has no explicit constructor.
 
 ## Functions
 
