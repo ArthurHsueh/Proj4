@@ -176,8 +176,8 @@ struct CDijkstraTransportationPlanner::SImplementation{
                     if(DEdgeSpeedLimit.count({PrevNodeID, CurrNodeID})){
                         SpeedLimit = DEdgeSpeedLimit.at({PrevNodeID, CurrNodeID});
                     }
+                    BusTime += SegDist / SpeedLimit;
                 }
-                BusTime += DConfiguration->BusStopTime() / 3600.0; //add stop time per segment (boarding/alighting)
                 auto PrevVertexID = DFastestNodeToVertex[PrevStop->NodeID()];
                 auto CurrVertexID = DFastestNodeToVertex[CurrStop->NodeID()];
                 DFastestPathRouter.AddEdge(PrevVertexID, CurrVertexID, BusTime);

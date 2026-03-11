@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="5" failures="0" disabled="0" errors="0" time="0.001" timestamp="2026-03-10T23:40:48.539" name="AllTests">
-  <testsuite name="DijkstraPathRouter" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-03-10T23:40:48.539">
-    <testcase name="SimpleTest" file="testsrc/DijkstraPathRouterTest.cpp" line="4" status="run" result="completed" time="0." timestamp="2026-03-10T23:40:48.539" classname="DijkstraPathRouter" />
-    <testcase name="ShortestPath" file="testsrc/DijkstraPathRouterTest.cpp" line="14" status="run" result="completed" time="0." timestamp="2026-03-10T23:40:48.539" classname="DijkstraPathRouter" />
-    <testcase name="ShortestPathHardTest" file="testsrc/DijkstraPathRouterTest.cpp" line="39" status="run" result="completed" time="0." timestamp="2026-03-10T23:40:48.539" classname="DijkstraPathRouter" />
-    <testcase name="ShortestPathUnreachableTest" file="testsrc/DijkstraPathRouterTest.cpp" line="70" status="run" result="completed" time="0." timestamp="2026-03-10T23:40:48.540" classname="DijkstraPathRouter" />
-    <testcase name="ShortestPathSelfTest" file="testsrc/DijkstraPathRouterTest.cpp" line="94" status="run" result="completed" time="0." timestamp="2026-03-10T23:40:48.540" classname="DijkstraPathRouter" />
+<testsuites tests="5" failures="0" disabled="0" errors="0" time="0." timestamp="2026-03-11T00:15:56.924" name="AllTests">
+  <testsuite name="DijkstraPathRouter" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-11T00:15:56.924">
+    <testcase name="SimpleTest" file="testsrc/DijkstraPathRouterTest.cpp" line="4" status="run" result="completed" time="0." timestamp="2026-03-11T00:15:56.924" classname="DijkstraPathRouter" />
+    <testcase name="ShortestPath" file="testsrc/DijkstraPathRouterTest.cpp" line="14" status="run" result="completed" time="0." timestamp="2026-03-11T00:15:56.925" classname="DijkstraPathRouter" />
+    <testcase name="ShortestPathHardTest" file="testsrc/DijkstraPathRouterTest.cpp" line="39" status="run" result="completed" time="0." timestamp="2026-03-11T00:15:56.925" classname="DijkstraPathRouter" />
+    <testcase name="ShortestPathUnreachableTest" file="testsrc/DijkstraPathRouterTest.cpp" line="70" status="run" result="completed" time="0." timestamp="2026-03-11T00:15:56.925" classname="DijkstraPathRouter" />
+    <testcase name="ShortestPathSelfTest" file="testsrc/DijkstraPathRouterTest.cpp" line="94" status="run" result="completed" time="0." timestamp="2026-03-11T00:15:56.925" classname="DijkstraPathRouter" />
   </testsuite>
 </testsuites>
