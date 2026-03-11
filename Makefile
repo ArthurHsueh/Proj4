@@ -40,7 +40,10 @@ TEST_CSVBSINDEX_OBJ_FILES = $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/DSV
 TEST_OSM_OBJ_FILES = $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/XMLReader.o $(TESTOBJ_DIR)/OpenStreetMap.o $(TESTOBJ_DIR)/OpenStreetMapTest.o
 TEST_DPR_OBJ_FILES = $(TESTOBJ_DIR)/DijkstraPathRouter.o $(TESTOBJ_DIR)/DijkstraPathRouterTest.o
 TEST_TPCL_OBJ_FILES = $(TESTOBJ_DIR)/TransportationPlannerCommandLine.o  $(TESTOBJ_DIR)/TPCommandLineTest.o $(TESTOBJ_DIR)/StringUtils.o $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/StringDataSink.o $(TESTOBJ_DIR)/FileDataFactory.o $(TESTOBJ_DIR)/FileDataSource.o $(TESTOBJ_DIR)/FileDataSink.o $(TESTOBJ_DIR)/GeographicUtils.o $(TESTOBJ_DIR)/DijkstraTransportationPlanner.o
-TEST_TP_OBJ_FILES =  $(TESTOBJ_DIR)/DijkstraTransportationPlanner.o $(TESTOBJ_DIR)/CSVOSMTransportationPlannerTest.o $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/StringDataSink.o $(TESTOBJ_DIR)/FileDataFactory.o $(TESTOBJ_DIR)/GeographicUtils.o $(TESTOBJ_DIR)/OpenStreetMap.o $(TESTOBJ_DIR)/CSVBusSystem.o
+TEST_TP_OBJ_FILES = $(TESTOBJ_DIR)/DijkstraTransportationPlanner.o $(TESTOBJ_DIR)/CSVOSMTransportationPlannerTest.o $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/StringDataSink.o $(TESTOBJ_DIR)/FileDataFactory.o $(TESTOBJ_DIR)/GeographicUtils.o $(TESTOBJ_DIR)/OpenStreetMap.o $(TESTOBJ_DIR)/CSVBusSystem.o
+TRANSPLANNER_OBJ_FILES = $(OBJ_DIR)/planner.o $(OBJ_DIR)/DijkstraTransportationPlanner.o $(OBJ_DIR)/TransportationPlannerCommandLine.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/FileDataSource.o $(OBJ_DIR)/FileDataSink.o $(OBJ_DIR)/FileDataFactory.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/StringUtils.o 
+SPEEDTEST_OBJ_FILES = $(OBJ_DIR)/speedtest.o $(OBJ_DIR)/DijkstraTransportationPlanner.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/FileDataSource.o $(OBJ_DIR)/StringUtils.o 
+
 # Define the test target
 TEST_STR_TARGET	= $(TESTBIN_DIR)/teststrutils
 TEST_STRSRC_TARGET	= $(TESTBIN_DIR)/teststrdatasource 
@@ -55,6 +58,9 @@ TEST_OSM_TARGET	= $(TESTBIN_DIR)/testosm
 TEST_DPR_TARGET = $(TESTBIN_DIR)/testdijkstrapathrouter
 TEST_TPCL_TARGET = $(TESTBIN_DIR)/testtpcl
 TEST_TP_TARGET = $(TESTBIN_DIR)/testtp
+TRANSPLANNER_TARGET = $(BIN_DIR)/transplanner
+SPEEDTEST_TARGET = $(BIN_DIR)/speedtest
+
 
 all: directories \
     run_dprtest \
@@ -166,6 +172,12 @@ $(TEST_TPCL_TARGET): $(TEST_TPCL_OBJ_FILES)
 
 $(TEST_TP_TARGET): $(TEST_TP_OBJ_FILES)
 	$(CXX) $(TEST_CFLAGS) $(TEST_CPPFLAGS) $(TEST_TP_OBJ_FILES) $(TEST_LDFLAGS) -o $(TEST_TP_TARGET)
+
+$(TRANSPLANNER_TARGET): $(TRANSPLANNER_OBJ_FILES)
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(TRANSPLANNER_OBJ_FILES) $(LDFLAGS) -o $(TRANSPLANNER_TARGET)
+
+$(SPEEDTEST_TARGET): $(SPEEDTEST_OBJ_FILES)
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(SPEEDTEST_OBJ_FILES) $(LDFLAGS) -o $(SPEEDTEST_TARGET)
 
 $(TESTOBJ_DIR)/%.o: $(TESTSRC_DIR)/%.cpp
 	$(CXX) $(TEST_CFLAGS) $(TEST_CPPFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
