@@ -98,9 +98,11 @@ struct CDijkstraPathRouter::SImplementation{
             }
             path.push_back(src);
             std::reverse(path.begin(), path.end()); //Reverse the the order of the vector
+            return Weights[dest]; //Return the final distance from source to destination
         }
-
-        return Weights[dest]; //Return the final distance from source to destination
+        
+        return CPathRouter::NoPathExists;
+    
     }
 };
 

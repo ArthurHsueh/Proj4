@@ -4,38 +4,40 @@
 #include <algorithm>
 
 struct CBusSystemIndexer::SImplementation{
-    std::shared_ptr<CBusSystem> DBusSystem;
-    std::vector<std::shared_ptr<SStop>> DSortedStopsByIndex;
-    std::unordered_map<TNodeID,std::shared_ptr<SStop>> DStopsByNodeID;
-    std::vector<std::shared_ptr<SRoute>> DSortedRoutesByIndex;
+    std::shared_ptr<CBusSystem> DBusSystem; //the bus system being indexed
+    std::vector<std::shared_ptr<SStop>> DSortedStopsByIndex; //stops sorted by ID for SortedStopByIndex
+    std::unordered_map<TNodeID,std::shared_ptr<SStop>> DStopsByNodeID; //map from node ID to stop for StopByNodeID
+    std::vector<std::shared_ptr<SRoute>> DSortedRoutesByIndex; //routes sorted by Name for SortedRouteByIndex
     
-    struct SNodeIDPairHash{
+    struct SNodeIDPairHash{ //hash function to combine the node IDs of an edge for faster lookup
         std::size_t operator()(const std::pair<TNodeID,TNodeID> &pair) const{
             std::size_t First = pair.first;
             std::size_t Second = pair.second;
-            return First ^ (Second<<1);
+            return First ^ (Second<<1); //shift second left 1 bit, merge the two
         }
     };
     std::unordered_map<std::pair<TNodeID,TNodeID>,std::unordered_set<std::shared_ptr<SRoute>>,SNodeIDPairHash> DRoutesByNodeIDs;
 
     SImplementation(std::shared_ptr<CBusSystem> bussystem){
         DBusSystem = bussystem;
-        for(size_t Index = 0; Index < DBusSystem->StopCount(); Index++){
+        for(size_t Index = 0; Index < DBusSystem->StopCount(); Index++){ //add each stop into DSortedStopsByIndex and DStopsByNodeID
             auto Stop = DBusSystem->StopByIndex(Index);
             DSortedStopsByIndex.push_back(Stop);
             DStopsByNodeID[Stop->NodeID()] = Stop;
         }
+        // sort the stops by ID
         std::sort(DSortedStopsByIndex.begin(), DSortedStopsByIndex.end(), [](std::shared_ptr<SStop> l, std::shared_ptr<SStop> r) -> bool{
             return l->ID() < r->ID();
         });
-        for(size_t Index = 0; Index < DBusSystem->RouteCount(); Index++){
+        for(size_t Index = 0; Index < DBusSystem->RouteCount(); Index++){ //add each route into DSortedRoutesByIndex
             auto Route = DBusSystem->RouteByIndex(Index);
             DSortedRoutesByIndex.push_back(Route);
         }
+        //sort the routes by Name
         std::sort(DSortedRoutesByIndex.begin(), DSortedRoutesByIndex.end(), [](std::shared_ptr<SRoute> l, std::shared_ptr<SRoute> r) -> bool{
             return l->Name() < r->Name();
         });
-        for(auto Route: DSortedRoutesByIndex){
+        for(auto Route: DSortedRoutesByIndex){ //get information for each route and store in DRoutesByNodeIDs
             for(size_t Index = 1; Index < Route->StopCount(); Index++){
                 auto Previous = Route->GetStopID(Index-1);
                 auto Current = Route->GetStopID(Index);

@@ -1,5 +1,5 @@
 # CDijkstraTransportationPlanner
-This class implements the CTransportationPlanner abstract interface. It utilizes COpenStreetMap, CCSVBusSystem, CBusSystemIndexer, and CDijkstraPathRouter to find the shortest and fastest paths across a street map with multiple modes of transportation. It constructs two separate path graphs, one weighted by distance for shortest paths, and one weighted by time for fastest paths. It also contains basic functions to analyze nodes.
+This class implements the CTransportationPlanner abstract interface. It utilizes COpenStreetMap, CCSVBusSystem, CBusSystemIndexer, and CDijkstraPathRouter to find the shortest and fastest paths across a street map with multiple modes of transportation. It constructs three separate path graphs: one weighted by distance for shortest paths, one weighted by time for pure bike trips, and one weighted by time for walk and bus trips.
 
 Before the constructor, the class defines a variety of variables, including:
 
@@ -7,13 +7,7 @@ DConfiguration, which holds the shared pointer to the configuration object conta
 
 DSortedNodes, a vector of street map nodes sorted by ID
 
-DShortestPathRouter and DFastestPathRouter, which are type CDijkstraPathRouter with edges weighted by distance in miles and time in hours respectively
-
-DShortestNodeToVertex and DFastestNodeToVertex which maps OSM node ID to vertex ID for the shortest and fastest path router respectively
-
-DBusSystemIndexer, which indexes the bus system for stop and route lookup
-
-DFastestEdgeModes, which is an unordered map with edges and corresponding mode (walk, bike or bus)
+DShortestPathRouter, DFastestBikeRouter, and DFastestBusRouter, which are type CDijkstraPathRouter graphs with edges weighted by distance in miles for shortest and time in hours for fastest (BikeRouter assumes only walk/bike and BusRouter assuems only walk/bus)
 
 DEdgeStreetName, which maps each directed node pair to its street name
 
@@ -24,17 +18,7 @@ And SEdgePairHash and SNodeIDPairHash, which are hash functions using a prime nu
 ## Constructor
 
 ### CDijkstraTransportationPlanner(std::shared_ptr<SConfiguration> config);
-The constructor accepts a shared pointer to an SConfiguration object. It:
-
-Collects and sorts all street map nodes by ID
-
-Registers every node as a vertex in both the shortest and fastest path routers
-
-Builds the shortest path graph with weighted edges by distance in miles while respecting the rules of the road
-
-Builds the fastest path graph with walk and bike edges weighted by time in hours, where walking ignores oneway restrictions and biking respects them
-
-And adds bus edges to the fastest path graph between adjacent stops on each route, weighted by road travel time using per-road speed limits.
+The constructor accepts a shared pointer to an SConfiguration object. It builds two separate fastest path graphs, because we cannot take a bike path if we use the bus. The bike router contains bike edges that are limited by one-way restrictions. The bus router contains both walk edges, which are limited by one-way restrictions, and bus edges which are limited by the road speed limit.
 
 ## Destructor
 
@@ -54,9 +38,8 @@ Checks if index is greater than or equal to StopCount() and returns nullptr if s
 The function first checks if both src and dest exist in DShortestNodeToVertex, and returns CPathRouter::NoPathExists if either is missing. Then, it translates both node IDs to vertex IDs and calls DShortestPathRouter.FindShortestPath. If no path is found, it returns CPathRouter::NoPathExists. Otherwise, the function iterates over the returned vertex path and uses GetVertexTag to convert each vertex ID back to a node ID, filling the path vector. Returns the total distance in miles.
 
 ### double FindFastestPath(TNodeID src, TNodeID dest, std::vector<TTripStep> &path) override;
-The function first checks if both src and dest exist in DFastestNodeToVertex, and returns CPathRouter::NoPathExists if either is missing. Then, it translates both node IDs to vertex IDs and calls DFastestPathRouter.FindShortestPath (to find the minimum time path). If no path is found, returns CPathRouter::NoPathExists. Otherwise, it iterates over the returned vertex path and reconstructs the mode of transportation for each step by looking up the edge in DFastestEdgeModes. 
+The function first checks if both src and dest exist in DFastestNodeToVertex, and returns CPathRouter::NoPathExists if either is missing.  Then, it translates both node IDs to vertex IDs and calls the FindShortestPath() function to DFastestBikeRouter and DFastestBusRouter. It compares the times of the two, and chooses the faster path. Then, it uses a for loop to go through each vertex of the path, and reconstructs the map by looking up the mode transportation for each edge in the corresponding map (DFastestBikeEdgeModes if the bike route was faster, or DFastestBusEdgeModes if the bus route was faster). 
 
-The first step defaults to Walk unless the first edge is Bike, as the only other option is the bus, and if you take the bus you must walk to it. 
 
 ### bool GetPathDescription(const std::vector<TTripStep> &path, std::vector<std::string> &desc) const override;
 The function first clears desc, then eturns false if path is empty or the starting node is invalid. Then, it pushes a string of "Start at " and the coordinates of a node's location. 

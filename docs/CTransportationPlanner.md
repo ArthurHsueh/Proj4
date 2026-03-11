@@ -50,7 +50,7 @@ The virtual destructor for CTransportationPlanner.
 Returns the total number of nodes in the street map.
 
 ### virtual std::shared_ptr<CStreetMap::SNode> SortedNodeByIndex(std::size_t index) const noexcept = 0;
-Returns the street map node at the given index. Nodes are sorted by their node I (lowest to highest). Returns nullptr if the index is greater than or equal to NodeCount().
+Returns the street map node at the given index. Nodes are sorted by their node ID (lowest to highest). Returns nullptr if the index is greater than or equal to NodeCount().
 
 ### virtual double FindShortestPath(TNodeID src, TNodeID dest, std::vector<TNodeID> &path) = 0;
 Returns the distance in miles of the shortest path from src to dest. Fills path with the node IDs along the route. Returns CPathRouter::NoPathExists if no path exists.

@@ -59,6 +59,13 @@ struct CTransportationPlannerCommandLine::SImplementation{
 
     void Node(CTransportationPlanner::TNodeID index){ //Writes to the OutputSink the Node id and location, given an index
         auto node = DTransportationPlanner->SortedNodeByIndex(index); //Retrieve the node by index
+        if(!node){ //check for out of bounds index
+            std::string err = "Invalid node parameter, see help.\n";
+            for(char c: err){
+                DErrorDataSink->Put(c);
+            }
+            return;
+        }
         auto id = (node->ID()); 
         auto location = SGeographicUtils::ConvertLLToDMS(node->Location()); //Use GeographicalUtils to convert from long/lat
         std::string outputstring = "Node " + std::to_string(index) + ": id = " + std::to_string(node->ID()) + " is at " + location + "\n";
@@ -72,10 +79,16 @@ struct CTransportationPlannerCommandLine::SImplementation{
         src = source;
         dest = destination;
         auto distance = DTransportationPlanner->FindShortestPath(src, dest, path); //Calls Dijkstra's on the graph
+        
+        if(distance == CPathRouter::NoPathExists){ //check if invalid source/destination
+            std::string err = "Unable to find shortest path from " + std::to_string(source) + " to " + std::to_string(destination) + ".\n";
+            for(char c: err) DErrorDataSink->Put(c);
+        return;
+        }
+        
         std::stringstream stream;
         stream << std::fixed << std::setprecision(1) << distance; //1 decimal point
         std::string outputstring = "Shortest path is " + stream.str() + " mi." + "\n";
-
         for(char c: outputstring){
             DOutputDataSink->Put(c);
         }
@@ -86,6 +99,12 @@ struct CTransportationPlannerCommandLine::SImplementation{
         dest = destination;
         time = DTransportationPlanner->FindFastestPath(src, dest, steps);
     
+        if(time == CPathRouter::NoPathExists){
+            std::string err = "Unable to find fastest path from " + std::to_string(source) + " to " + std::to_string(destination) + ".\n";
+            for(char c: err) DErrorDataSink->Put(c);
+        return;
+     }
+
         int hours = static_cast<int>(time); //Convert to hours (int rounding)
         int minutes = static_cast<int>((time - hours) * 60); //Convert to minutes (int rouding)
         int seconds = static_cast<int>(((time - hours) * 60 - minutes) * 60); //Convert to seconds (int rounding)
@@ -203,7 +222,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
             }
 
             if (commandsplit[0] == "node"){ //If command is node, check if a valid node paramter exists; if yes, call Node() and write to ErrorSink otherwise
-                if(commandsplit.size() < 2){
+                if(commandsplit.size() < 2){  //node takes 2 parameters (node and the index)
                     std::string outputstring = "Invalid node command, see help.\n";
                     for(char c: outputstring){
                         DErrorDataSink->Put(c);
@@ -229,7 +248,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
 
             if (commandsplit[0] == "shortest"){ //If command is shortest, check if a valid shortest parameter exists; if yes, call shortest() and write to ErrorSink otherwise
                 path.clear();
-                if(commandsplit.size() < 2){
+                if(commandsplit.size() < 3){ // < 3 because shortest needs 3 parameters (including shortest)
                     std::string outputstring = "Invalid shortest command, see help.\n";
                     for(char c: outputstring){
                         DErrorDataSink->Put(c);
@@ -266,7 +285,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
 
             if (commandsplit[0] == "fastest"){  //If command is fastest, check if a valid shortest parameter exists; if yes, call fastest() and write to ErrorSink otherwise
                 steps.clear();
-                if(commandsplit.size() < 2){
+                if(commandsplit.size() < 3){ // < 3 because fastest needs 3 parameters (including shortest)
                     std::string outputstring = "Invalid fastest command, see help.\n";
                     for(char c: outputstring){
                         DErrorDataSink->Put(c);

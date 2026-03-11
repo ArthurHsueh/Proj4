@@ -31,7 +31,6 @@ int main(int argc, char *argv[]){
         cerr<<"Syntax Error: transplanner [--data=path | --results=path]"; //Identify the files given
         return 1;
     }
-    cout<<DataPath<<" "<< ResultsPath<<endl;
 
     auto StdIn = std::make_shared<CStandardDataSource>(); //Create all object files
     auto StdOut = std::make_shared<CStandardDataSink>();
