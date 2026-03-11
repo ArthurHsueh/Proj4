@@ -4,7 +4,7 @@
 
 struct CDijkstraPathRouter::SImplementation{
     struct SVertex;
-    using TEdge = std::pair<double,std::shared_ptr<SVertex>>;
+    using TEdge = std::pair<double,TVertexID>;
     struct SVertex{
         std::vector<TEdge> DEdges;
         std::any DTag;
@@ -25,7 +25,7 @@ struct CDijkstraPathRouter::SImplementation{
 
     TVertexID AddVertex(std::any tag) noexcept{
         auto NewVertex = std::make_shared<SVertex>(); //Create a shared pointer to an SVertex
-        NewVertex->DTag = tag; //Assings tag to the vertex 
+        NewVertex->DTag = tag; //Assigns tag to the vertex 
         TVertexID NewID = DVertices.size(); //Assigns the ID (index of the vector storing the vertices) to the vertex
         DVertices.push_back(NewVertex); //Push the vertex to the vector
         return NewID;
@@ -40,9 +40,9 @@ struct CDijkstraPathRouter::SImplementation{
 
     bool AddEdge(TVertexID src, TVertexID dest, double weight, bool bidir = false) noexcept{
         if(src < DVertices.size() && dest < DVertices.size()){ //Checks if the IDs' are valid
-            DVertices[src]->DEdges.push_back(std::make_pair(weight,DVertices[dest])); //Create the edge
+            DVertices[src]->DEdges.push_back(std::make_pair(weight,dest)); //Create the edge
             if(bidir){
-                DVertices[dest]->DEdges.push_back(std::make_pair(weight,DVertices[src])); //If bidirectional, create the edge going the other direction as well
+                DVertices[dest]->DEdges.push_back(std::make_pair(weight,dest)); //If bidirectional, create the edge going the other direction as well
             }
             return true; //Return true on success
         }
@@ -80,9 +80,7 @@ struct CDijkstraPathRouter::SImplementation{
             std::vector<TEdge> &adjacent = DVertices[id]->DEdges; //Iterates through the adjacency list
             for(TEdge edge: adjacent){
                 auto weight = edge.first; //Distance from the node
-                auto neighbor = edge.second; //Shared pointer of the node, in which we have to convert to its ID
-                auto res = (std::find(DVertices.begin(), DVertices.end(), neighbor));
-                auto neighborid = static_cast<size_t>(std::distance(DVertices.begin(), res));
+                auto neighborid = edge.second; //Shared pointer of the node, in which we have to convert to its ID
 
                 if (Weights[id] + weight < Weights[neighborid]){ //If we find a shorter distance from source to the node
                     Weights[neighborid] = Weights[id] + weight; //Update weight
