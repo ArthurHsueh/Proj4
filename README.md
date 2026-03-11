@@ -1,5 +1,5 @@
 # Proj4
-This project implements
+This project implements navigation tools that allows users to find shortest and fastest path through the command line.
 
 ## Contributors
 Student 1: Arthur Hsueh (922681552)
@@ -7,6 +7,7 @@ Student 1: Arthur Hsueh (922681552)
 Student 2: Michael Hua (923946746)
 
 ## Project Status
+The project should be almost complete, with reasonable coverage and passing all test cases
 
 ## Code References
 
