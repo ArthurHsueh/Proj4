@@ -300,7 +300,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
             auto CurrNodeID = path[i].second;
 
             if(Mode == ETransportationMode::Bus){
-                // Collect all consecutive bus steps to find the full board/exit range
+                //collect all consecutive bus steps to find the full board/exit range
                 TNodeID BoardNodeID = PrevNodeID; //node where the passenger boards the bus
                 TNodeID ExitNodeID = CurrNodeID; //will be updated to the last consecutive bus node
                 
@@ -314,8 +314,8 @@ struct CDijkstraTransportationPlanner::SImplementation{
                     return false;
                 }
 
-                // Find the route that contains board→exit in order and goes furthest past exit.
-                // Tie-break: alphabetical route name.
+                //find the route that contains board→exit in order and goes furthest past exit.
+                //tie-break: alphabetical route name.
                 std::string BestRoute = "";
                 double BestRemaining = -1;
                 for(size_t r = 0; r < DConfiguration->BusSystem()->RouteCount(); r++){
@@ -326,7 +326,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                             FoundBoard = true;
                         }
                         if(FoundBoard && Route->GetStopID(s) == ExitStop->ID()){ //found the exit stop after boarding
-                            // Calculate remaining distance the route continues past our exit stop
+                            //calculate remaining distance the route continues past our exit stop
                             double Remaining = 0;
                             for(size_t k = s + 1; k < Route->StopCount(); k++){
                                 auto SA = DConfiguration->BusSystem()->StopByID(Route->GetStopID(k-1));
@@ -381,7 +381,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                     CurrNodeID = NextNodeID;
                 }
 
-                // Direction is calculated from the start to the end of the whole group, not just to the next node
+                //direction is calculated from the start to the end of the whole group, not just to the next node
                 double Bearing = SGeographicUtils::CalculateBearing(
                     GetNode(GroupStartNodeID)->Location(), GetNode(GroupEndNodeID)->Location());
                 std::string Dir = SGeographicUtils::BearingToDirection(Bearing);
@@ -391,7 +391,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                     Line += "along " + StreetName; //named street: "along Main St."
                 }
                 else{
-                    // Unnamed street, look ahead for the next named street, or say "End"
+                    //unnamed street, look ahead for the next named street, or say "End"
                     std::string NextName = "End";
                     for(size_t j = i + 1; j < path.size(); j++){
                         auto JPrev = path[j-1].second;

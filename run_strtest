@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="15" failures="0" disabled="0" errors="0" time="0.129" timestamp="2026-03-10T23:14:09.494" name="AllTests">
-  <testsuite name="StringUtilsTest" tests="15" failures="0" disabled="0" skipped="0" errors="0" time="0.129" timestamp="2026-03-10T23:14:09.494">
-    <testcase name="SliceTest" file="testsrc/StringUtilsTest.cpp" line="4" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Capitalize" file="testsrc/StringUtilsTest.cpp" line="50" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Upper" file="testsrc/StringUtilsTest.cpp" line="63" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Lower" file="testsrc/StringUtilsTest.cpp" line="74" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="LStrip" file="testsrc/StringUtilsTest.cpp" line="85" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="RStrip" file="testsrc/StringUtilsTest.cpp" line="100" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Strip" file="testsrc/StringUtilsTest.cpp" line="115" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Center" file="testsrc/StringUtilsTest.cpp" line="131" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="LJust" file="testsrc/StringUtilsTest.cpp" line="146" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="RJust" file="testsrc/StringUtilsTest.cpp" line="156" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Replace" file="testsrc/StringUtilsTest.cpp" line="166" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Split" file="testsrc/StringUtilsTest.cpp" line="191" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="Join" file="testsrc/StringUtilsTest.cpp" line="211" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="ExpandTabs" file="testsrc/StringUtilsTest.cpp" line="225" status="run" result="completed" time="0." timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
-    <testcase name="EditDistance" file="testsrc/StringUtilsTest.cpp" line="244" status="run" result="completed" time="0.128" timestamp="2026-03-10T23:14:09.494" classname="StringUtilsTest" />
+<testsuites tests="15" failures="0" disabled="0" errors="0" time="0.43" timestamp="2026-03-10T23:41:13.266" name="AllTests">
+  <testsuite name="StringUtilsTest" tests="15" failures="0" disabled="0" skipped="0" errors="0" time="0.43" timestamp="2026-03-10T23:41:13.267">
+    <testcase name="SliceTest" file="testsrc/StringUtilsTest.cpp" line="4" status="run" result="completed" time="0.001" timestamp="2026-03-10T23:41:13.267" classname="StringUtilsTest" />
+    <testcase name="Capitalize" file="testsrc/StringUtilsTest.cpp" line="50" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Upper" file="testsrc/StringUtilsTest.cpp" line="63" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Lower" file="testsrc/StringUtilsTest.cpp" line="74" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="LStrip" file="testsrc/StringUtilsTest.cpp" line="85" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="RStrip" file="testsrc/StringUtilsTest.cpp" line="100" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Strip" file="testsrc/StringUtilsTest.cpp" line="115" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Center" file="testsrc/StringUtilsTest.cpp" line="131" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="LJust" file="testsrc/StringUtilsTest.cpp" line="146" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="RJust" file="testsrc/StringUtilsTest.cpp" line="156" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Replace" file="testsrc/StringUtilsTest.cpp" line="166" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Split" file="testsrc/StringUtilsTest.cpp" line="191" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="Join" file="testsrc/StringUtilsTest.cpp" line="211" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="ExpandTabs" file="testsrc/StringUtilsTest.cpp" line="225" status="run" result="completed" time="0." timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
+    <testcase name="EditDistance" file="testsrc/StringUtilsTest.cpp" line="244" status="run" result="completed" time="0.428" timestamp="2026-03-10T23:41:13.268" classname="StringUtilsTest" />
   </testsuite>
 </testsuites>
