@@ -1,0 +1,379 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - src/OpenStreetMap.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory src">src</a> - OpenStreetMap.cpp<span style="font-size: 80%;"> (source / <a href="OpenStreetMap.cpp.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">98.8&nbsp;%</td>
+            <td class="headerCovTableEntry">163</td>
+            <td class="headerCovTableEntry">161</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-03-11 17:32:02</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">91.7&nbsp;%</td>
+            <td class="headerCovTableEntry">36</td>
+            <td class="headerCovTableEntry">33</td>
+          </tr>
+                  <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : #include &quot;OpenStreetMap.h&quot;</span>
+<span id="L2"><span class="lineNum">       2</span>              : #include &lt;unordered_map&gt;</span>
+<span id="L3"><span class="lineNum">       3</span>              : #include &lt;iostream&gt;</span>
+<span id="L4"><span class="lineNum">       4</span>              : </span>
+<span id="L5"><span class="lineNum">       5</span>              : struct COpenStreetMap::SImplementation{</span>
+<span id="L6"><span class="lineNum">       6</span>              :     const std::string DOSMTag = &quot;osm&quot;;</span>
+<span id="L7"><span class="lineNum">       7</span>              :     const std::string DNodeTag = &quot;node&quot;;</span>
+<span id="L8"><span class="lineNum">       8</span>              :     const std::string DTagTag = &quot;tag&quot;;</span>
+<span id="L9"><span class="lineNum">       9</span>              :     const std::string DWayTag = &quot;way&quot;;</span>
+<span id="L10"><span class="lineNum">      10</span>              :     const std::string DNodeIDAttr = &quot;id&quot;;</span>
+<span id="L11"><span class="lineNum">      11</span>              :     const std::string DNodeLatAttr = &quot;lat&quot;;</span>
+<span id="L12"><span class="lineNum">      12</span>              :     const std::string DNodeLonAttr = &quot;lon&quot;;</span>
+<span id="L13"><span class="lineNum">      13</span>              :     const std::string DWayIDAttr = &quot;id&quot;;</span>
+<span id="L14"><span class="lineNum">      14</span>              :     const std::string DWayNodeTag = &quot;nd&quot;;</span>
+<span id="L15"><span class="lineNum">      15</span>              :     const std::string DWayNodeAttr = &quot;ref&quot;;</span>
+<span id="L16"><span class="lineNum">      16</span>              :     const std::string DTagKeyAttr = &quot;k&quot;;</span>
+<span id="L17"><span class="lineNum">      17</span>              :     const std::string DTagValueAttr = &quot;v&quot;;</span>
+<span id="L18"><span class="lineNum">      18</span>              : </span>
+<span id="L19"><span class="lineNum">      19</span>              :     struct SNode: public CStreetMap::SNode{</span>
+<span id="L20"><span class="lineNum">      20</span>              :         TNodeID DID; //Store the Node ID</span>
+<span id="L21"><span class="lineNum">      21</span>              :         SLocation DLocation; //Store the location of the Node as (latitude, longitude)</span>
+<span id="L22"><span class="lineNum">      22</span>              :         std::vector&lt;std::string&gt; DAttributesByIndex; //Store the attributes' key by index  </span>
+<span id="L23"><span class="lineNum">      23</span>              :         std::unordered_map&lt;std::string, std::string&gt; DAttributesByKey; //Store the attributes' by key, value pair </span>
+<span id="L24"><span class="lineNum">      24</span>              : </span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">          45 :         ~SNode(){};</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">         200 :         TNodeID ID() const noexcept override{ //Returns the ID of the Node</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">         200 :             return DID;</span></span>
+<span id="L28"><span class="lineNum">      28</span>              :         }</span>
+<span id="L29"><span class="lineNum">      29</span>              : </span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">         205 :         SLocation Location() const noexcept override{ //Returns the (latitude, longitude) of the Node</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">         205 :             return DLocation;</span></span>
+<span id="L32"><span class="lineNum">      32</span>              :         }</span>
+<span id="L33"><span class="lineNum">      33</span>              : </span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">          38 :         std::size_t AttributeCount() const noexcept override{ //Returns the number of elements Attributes vector</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">          38 :             return DAttributesByIndex.size();</span></span>
+<span id="L36"><span class="lineNum">      36</span>              :         }</span>
+<span id="L37"><span class="lineNum">      37</span>              : </span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          23 :         std::string GetAttributeKey(std::size_t index) const noexcept override{ //Checks for out of bounds, then returns the Attribute at the provided index</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">          23 :             size_t size = AttributeCount();</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">          23 :             if (index &gt;= size){</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">          18 :                 return &quot;&quot;;</span></span>
+<span id="L42"><span class="lineNum">      42</span>              :             }</span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          14 :             return DAttributesByIndex[index];</span></span>
+<span id="L44"><span class="lineNum">      44</span>              :         }</span>
+<span id="L45"><span class="lineNum">      45</span>              : </span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          23 :         bool HasAttribute(const std::string &amp;key) const noexcept override{ //Returns true if the key exists in the Attributes unordered_map, false otherwise </span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          23 :             if (DAttributesByKey.find(key) == DAttributesByKey.end()){</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           9 :                 return false;</span></span>
+<span id="L49"><span class="lineNum">      49</span>              :             }</span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          14 :             return true;</span></span>
+<span id="L51"><span class="lineNum">      51</span>              :         }</span>
+<span id="L52"><span class="lineNum">      52</span>              : </span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          23 :         std::string GetAttribute(const std::string &amp;key) const noexcept override{ //Returns the Attribute at the provided key, returns empty string if it doesn't exist</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">          23 :             if (DAttributesByKey.find(key) == DAttributesByKey.end()){</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          18 :                 return &quot;&quot;;</span></span>
+<span id="L56"><span class="lineNum">      56</span>              :             }</span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          14 :             return DAttributesByKey.at(key);</span></span>
+<span id="L58"><span class="lineNum">      58</span>              :         }</span>
+<span id="L59"><span class="lineNum">      59</span>              :     };</span>
+<span id="L60"><span class="lineNum">      60</span>              : </span>
+<span id="L61"><span class="lineNum">      61</span>              :     struct SWay: public CStreetMap::SWay{</span>
+<span id="L62"><span class="lineNum">      62</span>              :         TWayID DID; //Store the Way ID</span>
+<span id="L63"><span class="lineNum">      63</span>              :         std::vector&lt;TNodeID&gt; Nodes; //Store the nodes in order</span>
+<span id="L64"><span class="lineNum">      64</span>              :         std::vector&lt;std::string&gt; DAttributesByIndex; //Store the attributes' key by index</span>
+<span id="L65"><span class="lineNum">      65</span>              :         std::unordered_map&lt;std::string, std::string&gt; DAttributesByKey; //Store the attributes' by key, value pair</span>
+<span id="L66"><span class="lineNum">      66</span>              : </span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">          19 :         ~SWay(){};</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          12 :         TWayID ID() const noexcept override{ //Returns the ID of the Way</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          12 :             return DID;</span></span>
+<span id="L70"><span class="lineNum">      70</span>              :         }</span>
+<span id="L71"><span class="lineNum">      71</span>              : </span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">         227 :         std::size_t NodeCount() const noexcept override{ //Returns the number of elements in std::vector&lt;TNodeID&gt; Nodes</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">         227 :             return Nodes.size();</span></span>
+<span id="L74"><span class="lineNum">      74</span>              :         }</span>
+<span id="L75"><span class="lineNum">      75</span>              : </span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         132 :         TNodeID GetNodeID(std::size_t index) const noexcept override{ //If the index is out of bounds, it returns InvalidWayID. Otherewise, it returns the node at the corresponding index</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         132 :             size_t size = NodeCount();</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">         132 :             if (index &gt;= size){</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           1 :                 return CStreetMap::InvalidWayID;</span></span>
+<span id="L80"><span class="lineNum">      80</span>              :             }</span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">         131 :             return Nodes[index];</span></span>
+<span id="L82"><span class="lineNum">      82</span>              :         }</span>
+<span id="L83"><span class="lineNum">      83</span>              : </span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          25 :         std::size_t AttributeCount() const noexcept override{ //Returns the number of elements in std::vector&lt;std::string&gt; DAttributesByIndex</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">          25 :             return DAttributesByIndex.size();</span></span>
+<span id="L86"><span class="lineNum">      86</span>              :         }</span>
+<span id="L87"><span class="lineNum">      87</span>              : </span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">          19 :         std::string GetAttributeKey(std::size_t index) const noexcept override{ //If the index is out of bounds, it returns an empty string. Otherwise, it returns the Atrribute at the corresponding index</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          19 :             size_t size = AttributeCount();</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          19 :             if (index &gt;= size){</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">           2 :                 return &quot;&quot;;</span></span>
+<span id="L92"><span class="lineNum">      92</span>              :             }</span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">          18 :             return DAttributesByIndex[index];</span></span>
+<span id="L94"><span class="lineNum">      94</span>              :         }</span>
+<span id="L95"><span class="lineNum">      95</span>              : </span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">          79 :         bool HasAttribute(const std::string &amp;key) const noexcept override{ //Checks if the attribute key exists in the dictionary, returning true if yes and false if no</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">          79 :             if (DAttributesByKey.find(key) == DAttributesByKey.end()){</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">          48 :                 return false;</span></span>
+<span id="L99"><span class="lineNum">      99</span>              :             }</span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">          31 :             return true;</span></span>
+<span id="L101"><span class="lineNum">     101</span>              :         }</span>
+<span id="L102"><span class="lineNum">     102</span>              : </span>
+<span id="L103"><span class="lineNum">     103</span> <span class="tlaGNC">          32 :         std::string GetAttribute(const std::string &amp;key) const noexcept override{ //If the attribute key doesn't exist, it returns an empty string. Otherwise, it returns the attribute value at the corresponding key</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">          32 :             if (DAttributesByKey.find(key) == DAttributesByKey.end()){</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">           2 :                 return &quot;&quot;;</span></span>
+<span id="L106"><span class="lineNum">     106</span>              :             }</span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">          31 :             return DAttributesByKey.at(key);</span></span>
+<span id="L108"><span class="lineNum">     108</span>              :         }</span>
+<span id="L109"><span class="lineNum">     109</span>              :     };</span>
+<span id="L110"><span class="lineNum">     110</span>              : </span>
+<span id="L111"><span class="lineNum">     111</span>              :     std::vector&lt;std::shared_ptr&lt;SNode&gt;&gt; DNodesByIndex;</span>
+<span id="L112"><span class="lineNum">     112</span>              :     std::unordered_map&lt;TNodeID,std::shared_ptr&lt;SNode&gt;&gt; DNodesByID;</span>
+<span id="L113"><span class="lineNum">     113</span>              : </span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">          12 :     bool ParseNodes(std::shared_ptr&lt;CXMLReader&gt; src, SXMLEntity &amp;nextentity){</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          12 :         SXMLEntity TempEntity;</span></span>
+<span id="L116"><span class="lineNum">     116</span>              : </span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          86 :         while(src-&gt;ReadEntity(TempEntity)){ //Loops and parses through all the nodes</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          86 :             if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DWayTag){ //Once we see the first Way tag, we finished parsing all the Nodes and set NextEntity to the just-consumed Way entity, letting ParseWay parse it </span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           9 :                 nextentity = TempEntity;</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">           9 :                 return true;</span></span>
+<span id="L121"><span class="lineNum">     121</span>              :             }</span>
+<span id="L122"><span class="lineNum">     122</span>              : </span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          77 :             if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DOSMTag){ //If there aren’t ways, then there will be missing info as well</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">           2 :                 return false;</span></span>
+<span id="L125"><span class="lineNum">     125</span>              :             } </span>
+<span id="L126"><span class="lineNum">     126</span>              : </span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          75 :             if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DNodeTag){ //If we see a start Node tag, we parse and loop until see an end Node tag</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          46 :                 if (TempEntity.AttributeValue(DNodeIDAttr).empty() || TempEntity.AttributeValue(DNodeLatAttr).empty() || TempEntity.AttributeValue(DNodeLonAttr).empty()){ //Not a valid Node as it must have id and location</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">           1 :                     return false;</span></span>
+<span id="L130"><span class="lineNum">     130</span>              :                 }</span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">          45 :                 auto NodeID = std::stoull(TempEntity.AttributeValue(DNodeIDAttr)); //Retrieve the attributes given by the XML Reader</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          45 :                 auto NodeLat = std::stod(TempEntity.AttributeValue(DNodeLatAttr));</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">          45 :                 auto NodeLon = std::stod(TempEntity.AttributeValue(DNodeLonAttr));</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">          45 :                 auto NewNode = std::make_shared&lt;SNode&gt;(); //Create the new node</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">          45 :                 NewNode-&gt;DID = NodeID; //Set the ID</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">          45 :                 NewNode-&gt;DLocation = {NodeLat,NodeLon}; //Set the location</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          45 :                 DNodesByIndex.push_back(NewNode); //Push the node into the vector</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          45 :                 DNodesByID[NodeID] = NewNode; //Push the (id, node) pair into the unordered_map</span></span>
+<span id="L139"><span class="lineNum">     139</span>              : </span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">          93 :                 while(src-&gt;ReadEntity(TempEntity)){ //Loop until we find an end Node tag</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">          93 :                     if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DNodeTag){ //If we see an end Node tag, break out of the loop and keep parsing for more nodes</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">          45 :                         break;</span></span>
+<span id="L143"><span class="lineNum">     143</span>              :                     }</span>
+<span id="L144"><span class="lineNum">     144</span>              : </span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">          48 :                     if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DTagTag){ //If we see a start Tag tag, store the attributes in the vector and unordered_map</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          14 :                         auto TagKey = TempEntity.AttributeValue(DTagKeyAttr); //Retrieve the attributes given by the XML Reader</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">          14 :                         auto TagValue = TempEntity.AttributeValue(DTagValueAttr);</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">          14 :                         NewNode-&gt;DAttributesByIndex.push_back(TagKey);</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">          14 :                         NewNode-&gt;DAttributesByKey[TagKey] = TagValue; </span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">          14 :                     }</span></span>
+<span id="L151"><span class="lineNum">     151</span>              : </span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          48 :                     if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DTagTag){ //If we see an end Tag tag, continue on the loop</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">          14 :                         continue;</span></span>
+<span id="L154"><span class="lineNum">     154</span>              :                     }</span>
+<span id="L155"><span class="lineNum">     155</span>              :                 }</span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">          45 :             }</span></span>
+<span id="L157"><span class="lineNum">     157</span>              :         }</span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaUNC">           0 :         return false;</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">          12 :     }</span></span>
+<span id="L160"><span class="lineNum">     160</span>              : </span>
+<span id="L161"><span class="lineNum">     161</span>              :     std::vector&lt;std::shared_ptr&lt;SWay&gt;&gt; DWaysByIndex;</span>
+<span id="L162"><span class="lineNum">     162</span>              :     std::unordered_map&lt;TWayID,std::shared_ptr&lt;SWay&gt;&gt; DWaysByID;</span>
+<span id="L163"><span class="lineNum">     163</span>              : </span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">           9 :     bool ParseWays(std::shared_ptr&lt;CXMLReader&gt; src, SXMLEntity &amp;firstentity){</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">           9 :         SXMLEntity TempEntity = firstentity; //Parse the Way that was parsed in ParseNode()</span></span>
+<span id="L166"><span class="lineNum">     166</span>              : </span>
+<span id="L167"><span class="lineNum">     167</span>              :         do{ //Loops and parses through all the ways</span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          33 :             if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DOSMTag){ //If we see the end OSM tag, we've reached the end of the file and can return true safely</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">           7 :                 return true;</span></span>
+<span id="L170"><span class="lineNum">     170</span>              :             } </span>
+<span id="L171"><span class="lineNum">     171</span>              : </span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          26 :             if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DWayTag){  //If we see a start Way tag, we parse and loop until see an end Node tag</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          20 :                 if(TempEntity.AttributeValue(DWayIDAttr).empty()){ //Check if Way doesn't contain an ID, in which we stop parsing and return false</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">           2 :                     return false;</span></span>
+<span id="L175"><span class="lineNum">     175</span>              :                 }</span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          19 :                 auto WayID = std::stoull(TempEntity.AttributeValue(DWayIDAttr)); //Retrieve the attributes given by the XML Reader</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          19 :                 auto NewWay = std::make_shared&lt;SWay&gt;(); //Create the new wyt</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          19 :                 NewWay-&gt;DID = WayID; //Set the ID</span></span>
+<span id="L179"><span class="lineNum">     179</span>              :                  </span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">         288 :                 while (src-&gt;ReadEntity(TempEntity)){ //Loop until we find an end Way tag</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">         288 :                     if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DWayTag){ //If we see an end Node tag, break out of the loop and keep parsing for more ways</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          19 :                         break;</span></span>
+<span id="L183"><span class="lineNum">     183</span>              :                     }</span>
+<span id="L184"><span class="lineNum">     184</span>              : </span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">         269 :                     if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DWayNodeTag){ //If we see a start node tag, we add it to our nodes vector</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          75 :                         auto NodeID = std::stoull(TempEntity.AttributeValue(DWayNodeAttr));</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          75 :                         NewWay-&gt;Nodes.push_back(NodeID);</span></span>
+<span id="L188"><span class="lineNum">     188</span>              :                     }</span>
+<span id="L189"><span class="lineNum">     189</span>              : </span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">         269 :                     if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DWayNodeTag){ //If we see and end node tag, continue on the loop</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">          75 :                         continue;</span></span>
+<span id="L192"><span class="lineNum">     192</span>              :                     }</span>
+<span id="L193"><span class="lineNum">     193</span>              : </span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">         194 :                     if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DTagTag){ //If we see a start Tag tag, store the attributes in the vector and unordered_map</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">          27 :                         auto TagKey = TempEntity.AttributeValue(DTagKeyAttr); //Retrieve the attributes given by the XML reader</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">          27 :                         auto TagValue = TempEntity.AttributeValue(DTagValueAttr);</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">          27 :                         NewWay-&gt;DAttributesByIndex.push_back(TagKey);</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          27 :                         NewWay-&gt;DAttributesByKey[TagKey] = TagValue; </span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          27 :                     }</span></span>
+<span id="L200"><span class="lineNum">     200</span>              : </span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         194 :                     if(TempEntity.DType == SXMLEntity::EType::EndElement &amp;&amp; TempEntity.DNameData == DTagTag){ //If we see an end Tag tag, continue on the loop</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          27 :                         continue;</span></span>
+<span id="L203"><span class="lineNum">     203</span>              :                     }</span>
+<span id="L204"><span class="lineNum">     204</span>              :                 }</span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">          19 :                 if(NewWay-&gt;NodeCount() &lt; 2){ //Not a valid Way as it must have at least 2 nodes</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           1 :                     return false;</span></span>
+<span id="L207"><span class="lineNum">     207</span>              :                 }</span>
+<span id="L208"><span class="lineNum">     208</span>              :                 else{ //Safely store the Way</span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">          18 :                     DWaysByIndex.push_back(NewWay); // Push the way into the vector</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          18 :                     DWaysByID[WayID] = NewWay; //Push the (id, way) pair into the unordered_map</span></span>
+<span id="L211"><span class="lineNum">     211</span>              :                 }</span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">          19 :             }</span></span>
+<span id="L213"><span class="lineNum">     213</span>              :         }</span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          24 :         while (src-&gt;ReadEntity(TempEntity)); //do-while loop</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaUNC">           0 :         return false;</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">           9 :     }</span></span>
+<span id="L217"><span class="lineNum">     217</span>              : </span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">          13 :     bool ParseOpenStreetMap(std::shared_ptr&lt;CXMLReader&gt; src){ </span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          13 :         SXMLEntity TempEntity;</span></span>
+<span id="L220"><span class="lineNum">     220</span>              :         </span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          13 :         if(src-&gt;ReadEntity(TempEntity)){ </span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          12 :             if(TempEntity.DType == SXMLEntity::EType::StartElement &amp;&amp; TempEntity.DNameData == DOSMTag){ //Checks if it's a valid OSM file (should have start OSM tag)</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          12 :                 if(ParseNodes(src,TempEntity)){ //If ParseNodes() was successful (not invalid OSM file, nothing crashed), continue with ParseWays()</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">           9 :                     if(ParseWays(src,TempEntity)){ //If PasrseWays() was successful (not invalid OSM file, nothing crashed), return true to indicate successful parsing</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">           7 :                         return true;</span></span>
+<span id="L226"><span class="lineNum">     226</span>              :                     }</span>
+<span id="L227"><span class="lineNum">     227</span>              :                 }</span>
+<span id="L228"><span class="lineNum">     228</span>              :             }</span>
+<span id="L229"><span class="lineNum">     229</span>              :         }</span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">           6 :         return false;</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">          13 :     }</span></span>
+<span id="L232"><span class="lineNum">     232</span>              : </span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">         325 :     SImplementation(std::shared_ptr&lt;CXMLReader&gt; src){</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          13 :         ParseOpenStreetMap(src);</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">          13 :     }</span></span>
+<span id="L236"><span class="lineNum">     236</span>              : </span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">          83 :     std::size_t NodeCount() const noexcept{ //Returns size of std::vector&lt;std::shared_ptr&lt;SNode&gt;&gt; DNodesByIndex</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">          83 :         return DNodesByIndex.size();</span></span>
+<span id="L239"><span class="lineNum">     239</span>              :     }</span>
+<span id="L240"><span class="lineNum">     240</span>              : </span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">          80 :     std::size_t WayCount() const noexcept{ //Return size of std::vector&lt;std::shared_ptr&lt;SWay&gt;&gt; DWaysByIndex;</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          80 :         return DWaysByIndex.size();</span></span>
+<span id="L243"><span class="lineNum">     243</span>              :     }</span>
+<span id="L244"><span class="lineNum">     244</span>              :     </span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">          47 :     std::shared_ptr&lt;CStreetMap::SNode&gt; NodeByIndex(std::size_t index) const noexcept{ //Checks for out of bounds, then returns the Node at the provided index</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">          47 :         size_t size = NodeCount();</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">          47 :         if(index &gt;= size){</span></span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           2 :             return nullptr;</span></span>
+<span id="L249"><span class="lineNum">     249</span>              :         }</span>
+<span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">          45 :         return DNodesByIndex[index];</span></span>
+<span id="L251"><span class="lineNum">     251</span>              :     }</span>
+<span id="L252"><span class="lineNum">     252</span>              :     </span>
+<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">         206 :     std::shared_ptr&lt;CStreetMap::SNode&gt; NodeByID(TNodeID id) const noexcept{ //Checks if the id is in the unordered_map, then returns the Node at the provide id key</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">         206 :         if(DNodesByID.find(id) == DNodesByID.end()){</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           1 :             return nullptr;</span></span>
+<span id="L256"><span class="lineNum">     256</span>              :         }</span>
+<span id="L257"><span class="lineNum">     257</span> <span class="tlaGNC">         205 :         return DNodesByID.at(id);;</span></span>
+<span id="L258"><span class="lineNum">     258</span>              :     }</span>
+<span id="L259"><span class="lineNum">     259</span>              :     </span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">          38 :     std::shared_ptr&lt;CStreetMap::SWay&gt; WayByIndex(std::size_t index) const noexcept{ //Checks for out of bounds, then returns the Way at the provided index</span></span>
+<span id="L261"><span class="lineNum">     261</span> <span class="tlaGNC">          38 :         size_t size = WayCount();</span></span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">          38 :         if(index &gt;= size){</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">           5 :             return nullptr;</span></span>
+<span id="L264"><span class="lineNum">     264</span>              :         }</span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">          33 :         return DWaysByIndex[index];</span></span>
+<span id="L266"><span class="lineNum">     266</span>              :     }</span>
+<span id="L267"><span class="lineNum">     267</span>              :     </span>
+<span id="L268"><span class="lineNum">     268</span> <span class="tlaGNC">           7 :     std::shared_ptr&lt;CStreetMap::SWay&gt; WayByID(TWayID id) const noexcept{ //Checks if the id is in the unordered_map, then returns the Way at the provide id key</span></span>
+<span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC">           7 :         if(DWaysByID.find(id) == DWaysByID.end()){</span></span>
+<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC">           1 :             return nullptr;</span></span>
+<span id="L271"><span class="lineNum">     271</span>              :         }</span>
+<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC">           6 :         return DWaysByID.at(id);</span></span>
+<span id="L273"><span class="lineNum">     273</span>              :     }</span>
+<span id="L274"><span class="lineNum">     274</span>              : };</span>
+<span id="L275"><span class="lineNum">     275</span>              : </span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">          13 : COpenStreetMap::COpenStreetMap(std::shared_ptr&lt;CXMLReader&gt; src){</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">          13 :     DImplementation = std::make_unique&lt;SImplementation&gt;(src);</span></span>
+<span id="L278"><span class="lineNum">     278</span> <span class="tlaGNC">          13 : }</span></span>
+<span id="L279"><span class="lineNum">     279</span>              : </span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">          13 : COpenStreetMap::~COpenStreetMap(){</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">          13 : }</span></span>
+<span id="L282"><span class="lineNum">     282</span>              : </span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          36 : std::size_t COpenStreetMap::NodeCount() const noexcept {</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          36 :     return DImplementation-&gt;NodeCount();</span></span>
+<span id="L285"><span class="lineNum">     285</span>              : }</span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">          42 : std::size_t COpenStreetMap::WayCount() const noexcept{</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          42 :     return DImplementation-&gt;WayCount();</span></span>
+<span id="L288"><span class="lineNum">     288</span>              : }</span>
+<span id="L289"><span class="lineNum">     289</span>              : </span>
+<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">          47 : std::shared_ptr&lt;CStreetMap::SNode&gt; COpenStreetMap::NodeByIndex(std::size_t index) const noexcept{</span></span>
+<span id="L291"><span class="lineNum">     291</span> <span class="tlaGNC">          47 :     return DImplementation-&gt;NodeByIndex(index);</span></span>
+<span id="L292"><span class="lineNum">     292</span>              : }</span>
+<span id="L293"><span class="lineNum">     293</span>              : </span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">         206 : std::shared_ptr&lt;CStreetMap::SNode&gt; COpenStreetMap::NodeByID(TNodeID id) const noexcept{</span></span>
+<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">         206 :     return DImplementation-&gt;NodeByID(id);</span></span>
+<span id="L296"><span class="lineNum">     296</span>              : }</span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">          38 : std::shared_ptr&lt;CStreetMap::SWay&gt; COpenStreetMap::WayByIndex(std::size_t index) const noexcept{</span></span>
+<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">          38 :     return DImplementation-&gt;WayByIndex(index);</span></span>
+<span id="L299"><span class="lineNum">     299</span>              : }</span>
+<span id="L300"><span class="lineNum">     300</span>              : </span>
+<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">           7 : std::shared_ptr&lt;CStreetMap::SWay&gt; COpenStreetMap::WayByID(TWayID id) const noexcept{</span></span>
+<span id="L302"><span class="lineNum">     302</span> <span class="tlaGNC">           7 :     return DImplementation-&gt;WayByID(id);</span></span>
+<span id="L303"><span class="lineNum">     303</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.0-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

@@ -1,36 +1,74 @@
-#include "TransportationPlannerCommandLine.h"
-#include "DataFactory.h"
-#include "DijkstraTransportationPlanner.h"
-#include "FileDataSource.h"
-#include "FileDataSink.h"
-#include "FileDataFactory.h"
+#include <string>
+#include <iostream>
+#include <vector>
 #include "StandardDataSink.h"
 #include "StandardDataSource.h"
 #include "StandardErrorDataSink.h"
-#include "StringDataSink.h"
-#include "StringDataSource.h"
-#include "XMLReader.h"
+#include "FileDataFactory.h"
+#include "TransportationPlannerCommandLine.h"
 #include "DSVReader.h"
-#include "OpenStreetMap.h"
+#include "XMLReader.h"
 #include "CSVBusSystem.h"
-#include <iostream>
+#include "OpenStreetMap.h"
+#include "TransportationPlannerConfig.h"
+#include "DijkstraTransportationPlanner.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
 
+int ParseArgs(const std::vector<std::string> &args, std::string &datapath, std::string &resultspath);
+ 
 int main(int argc, char *argv[]){
-    auto CommandDataSource  = std::make_shared<CStringDataSource>(std::cin);
-    auto OutputSink = std::make_shared<CStringDataSink>(std::cout);
-    auto ErrorSink = std::make_shared<CStringDataSink>(std::cerr);
-    auto ResultsFactory = std::make_shared<CFileDataFactory>(std::string("results"));
+    std::string DataPath = "./data"; //If command line args aren't used, it will be just the default
+    std::string ResultsPath = "./results";
+    std::vector<std::string> Arguments;
 
-    std::shared_ptr<CXMLReader> XMLReader = std::make_shared<CXMLReader>("map.osm");
-    std::shared_ptr<CDSVReader> StopsReader = std::make_shared<CDSVReader>("stops.csv");
-    std::shared_ptr<CDSVReader> RoutesReader = std::make_shared<CDSVReader>("routes.csv");
-    std::shared_ptr<CStreetMap> StreetMap = std::make_shared<COpenStreetMap>(XMLReader);
-    std::shared_ptr<CBusSystem> BusSystem = std::make_shared<CCSVBusSystem>(StopsReader, RoutesReader);
-    std::shared_ptr<CTransportationPlanner::SConfiguration> Configuration = std::make_shared<CTransportationPlanner::SConfiguration>(StreetMap, BusSystem);
-    auto TransportationPlanner = std::make_shared<CDijkstraTransportationPlanner>(CommandDataSource, OutputSink, ErrorSink, ResultsFactory, Configuration);
+    for(int Index = 1; Index < argc; Index++){
+        Arguments.push_back(argv[Index]);
+    }
+    if(ParseArgs(Arguments, DataPath, ResultsPath)){
+        cerr<<"Syntax Error: transplanner [--data=path | --results=path]"; //Identify the files given
+        return 1;
+    }
+    cout<<DataPath<<" "<< ResultsPath<<endl;
 
-    CTransportationPlannerCommandLine CommandLine(CommandDataSource, OutputSink, ErrorSink,ResultsFactory, TransportationPlanner);
-    CommandLine.ProcessCommands();
+    auto StdIn = std::make_shared<CStandardDataSource>(); //Create all object files
+    auto StdOut = std::make_shared<CStandardDataSink>();
+    auto StdErr = std::make_shared<CStandardErrorDataSink>();
+    auto Results = std::make_shared<CFileDataFactory>(ResultsPath);
+    auto Data = std::make_shared<CFileDataFactory>(DataPath);
+    auto StreetMapSource = Data->CreateSource("city.osm");
+    auto StopsSource = Data->CreateSource("stops.csv");
+    auto RoutesSource = Data->CreateSource("routes.csv");
+    auto StreetMapXMLReader = std::make_shared<CXMLReader>(StreetMapSource);
+    auto StopsDSVReader = std::make_shared<CDSVReader>(StopsSource, ',');
+    auto RoutesDSVReader = std::make_shared<CDSVReader>(RoutesSource, ',');
+    auto StreetMap = std::make_shared<COpenStreetMap>(StreetMapXMLReader);
+    auto BusSystem = std::make_shared<CCSVBusSystem>(StopsDSVReader, RoutesDSVReader);
+    auto Config = std::make_shared<STransportationPlannerConfig>(StreetMap, BusSystem);
+    auto TransportationPlanner = std::make_shared<CDijkstraTransportationPlanner>(Config);
+
+    CTransportationPlannerCommandLine TPCommandLine(StdIn, StdOut, StdErr, Results, TransportationPlanner);
+ 
+    if(!TPCommandLine.ProcessCommands()){ //Process the commands
+        return 1;
+    }
+
+    return 0; //Return 0 on success
+}
+
+int ParseArgs(const std::vector<std::string> &args, std::string &datapath, std::string &resultspath){ //Parse the arguments given
+    for(auto &Argument : args){
+        if(Argument.find("--data=") == 0){
+            datapath = Argument.substr(7);
+        }
+        else if(Argument.find("--results=") == 0){
+            resultspath = Argument.substr(10);
+        }
+        else{
+            return 1;
+        }
+    } 
     return 0;
 }

@@ -1,0 +1,530 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - src/DijkstraTransportationPlanner.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory src">src</a> - DijkstraTransportationPlanner.cpp<span style="font-size: 80%;"> (source / <a href="DijkstraTransportationPlanner.cpp.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">97.0&nbsp;%</td>
+            <td class="headerCovTableEntry">265</td>
+            <td class="headerCovTableEntry">257</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-03-11 17:32:02</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">95.0&nbsp;%</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntry">19</td>
+          </tr>
+                  <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : #include &quot;DijkstraTransportationPlanner.h&quot;</span>
+<span id="L2"><span class="lineNum">       2</span>              : #include &quot;DijkstraPathRouter.h&quot;</span>
+<span id="L3"><span class="lineNum">       3</span>              : #include &quot;BusSystemIndexer.h&quot;</span>
+<span id="L4"><span class="lineNum">       4</span>              : #include &quot;GeographicUtils.h&quot;</span>
+<span id="L5"><span class="lineNum">       5</span>              : #include &lt;vector&gt;</span>
+<span id="L6"><span class="lineNum">       6</span>              : #include &lt;unordered_map&gt;</span>
+<span id="L7"><span class="lineNum">       7</span>              : #include &lt;algorithm&gt;</span>
+<span id="L8"><span class="lineNum">       8</span>              : #include &lt;format&gt;</span>
+<span id="L9"><span class="lineNum">       9</span>              : </span>
+<span id="L10"><span class="lineNum">      10</span>              : struct CDijkstraTransportationPlanner::SImplementation{</span>
+<span id="L11"><span class="lineNum">      11</span>              :     std::shared_ptr&lt;SConfiguration&gt; DConfiguration; //holds the config (street map, bus system, speeds)</span>
+<span id="L12"><span class="lineNum">      12</span>              :     std::vector&lt;std::shared_ptr&lt;CStreetMap::SNode&gt;&gt; DSortedNodes; //all street map nodes sorted by ID</span>
+<span id="L13"><span class="lineNum">      13</span>              :     CDijkstraPathRouter DShortestPathRouter; //path router weighted by distance in miles</span>
+<span id="L14"><span class="lineNum">      14</span>              :     CDijkstraPathRouter DFastestPathRouter; //path router weighted by time in hours</span>
+<span id="L15"><span class="lineNum">      15</span>              :     std::unordered_map&lt;TNodeID, CPathRouter::TVertexID&gt; DShortestNodeToVertex; //maps OSM node ID -&gt; vertex ID for shortest router</span>
+<span id="L16"><span class="lineNum">      16</span>              :     std::unordered_map&lt;TNodeID, CPathRouter::TVertexID&gt; DFastestNodeToVertex; //maps OSM node ID -&gt; vertex ID for fastest router</span>
+<span id="L17"><span class="lineNum">      17</span>              :     CBusSystemIndexer DBusSystemIndexer; //indexes the bus system for easy stop/route lookup</span>
+<span id="L18"><span class="lineNum">      18</span>              :     </span>
+<span id="L19"><span class="lineNum">      19</span>              :     using ETransportationMode = CTransportationPlanner::ETransportationMode;</span>
+<span id="L20"><span class="lineNum">      20</span>              :     using TTripStep = CTransportationPlanner::TTripStep;</span>
+<span id="L21"><span class="lineNum">      21</span>              : </span>
+<span id="L22"><span class="lineNum">      22</span>              :     struct SEdgePairHash{ //hash for (vertexID, vertexID) pairs used in DFastestEdgeModes</span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">         105 :         size_t operator()(const std::pair&lt;CPathRouter::TVertexID, CPathRouter::TVertexID&gt; &amp;p) const{</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">         105 :             size_t First = p.first;</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         105 :             size_t Second = p.second;</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">         105 :             return First * 1000003 + Second;</span></span>
+<span id="L27"><span class="lineNum">      27</span>              :         }</span>
+<span id="L28"><span class="lineNum">      28</span>              :     };</span>
+<span id="L29"><span class="lineNum">      29</span>              : </span>
+<span id="L30"><span class="lineNum">      30</span>              :     struct SNodeIDPairHash{ //hash for (nodeID, nodeID) pairs used in DEdgeStreetName and DEdgeSpeedLimit</span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">         158 :         size_t operator()(const std::pair&lt;TNodeID, TNodeID&gt; &amp;p) const{</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">         158 :             size_t First = p.first;</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">         158 :             size_t Second = p.second;</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         158 :             return First * 1000003 + Second;</span></span>
+<span id="L35"><span class="lineNum">      35</span>              :         }</span>
+<span id="L36"><span class="lineNum">      36</span>              :     };</span>
+<span id="L37"><span class="lineNum">      37</span>              : </span>
+<span id="L38"><span class="lineNum">      38</span>              :     //when reconstructing the fastest path, we need to know which transport mode was used on each edge</span>
+<span id="L39"><span class="lineNum">      39</span>              :     //bike edges overwrite walk for the same pair since bike is always faster on the same road</span>
+<span id="L40"><span class="lineNum">      40</span>              :     std::unordered_map&lt;std::pair&lt;CPathRouter::TVertexID, CPathRouter::TVertexID&gt;, ETransportationMode, SEdgePairHash&gt; DFastestEdgeModes;</span>
+<span id="L41"><span class="lineNum">      41</span>              :     std::unordered_map&lt;std::pair&lt;TNodeID, TNodeID&gt;, std::string, SNodeIDPairHash&gt; DEdgeStreetName; //street name for each directed road edge</span>
+<span id="L42"><span class="lineNum">      42</span>              :     std::unordered_map&lt;std::pair&lt;TNodeID, TNodeID&gt;, double, SNodeIDPairHash&gt; DEdgeSpeedLimit; //speed limit for each directed road edge</span>
+<span id="L43"><span class="lineNum">      43</span>              : </span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           5 :     SImplementation(std::shared_ptr&lt;SConfiguration&gt; config) : DBusSystemIndexer(config-&gt;BusSystem()){</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           5 :         DConfiguration = config;</span></span>
+<span id="L46"><span class="lineNum">      46</span>              : </span>
+<span id="L47"><span class="lineNum">      47</span>              :         //get all nodes from the street map into DSortedNodes</span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          28 :         for(size_t Index = 0; Index &lt; DConfiguration-&gt;StreetMap()-&gt;NodeCount(); Index++){</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          23 :             DSortedNodes.push_back(DConfiguration-&gt;StreetMap()-&gt;NodeByIndex(Index));</span></span>
+<span id="L50"><span class="lineNum">      50</span>              :         }</span>
+<span id="L51"><span class="lineNum">      51</span>              :         //sort nodes by ID so SortedNodeByIndex works correctly</span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           5 :         std::sort(DSortedNodes.begin(), DSortedNodes.end(), [](std::shared_ptr&lt;CStreetMap::SNode&gt; l, std::shared_ptr&lt;CStreetMap::SNode&gt; r) -&gt; bool{</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          37 :             return l-&gt;ID() &lt; r-&gt;ID();</span></span>
+<span id="L54"><span class="lineNum">      54</span>              :         });</span>
+<span id="L55"><span class="lineNum">      55</span>              : </span>
+<span id="L56"><span class="lineNum">      56</span>              :         //register every node as a vertex in both routers for CDijkstraPathRouter</span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          28 :         for(size_t Index = 0; Index &lt; DSortedNodes.size(); Index++){</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">          23 :             auto Node = DSortedNodes[Index];</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          23 :             DShortestNodeToVertex[Node-&gt;ID()] = DShortestPathRouter.AddVertex(Node-&gt;ID());</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          23 :             DFastestNodeToVertex[Node-&gt;ID()] = DFastestPathRouter.AddVertex(Node-&gt;ID());</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          23 :         }</span></span>
+<span id="L62"><span class="lineNum">      62</span>              : </span>
+<span id="L63"><span class="lineNum">      63</span>              :         //build the shortest path graph with edges weighted by distance</span>
+<span id="L64"><span class="lineNum">      64</span>              :         //also fill DEdgeStreetName and DEdgeSpeedLimit for use in bus timing and path description</span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          17 :         for(size_t WayIndex = 0; WayIndex &lt; DConfiguration-&gt;StreetMap()-&gt;WayCount(); WayIndex++){ //for each way in the street map</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          12 :             auto Way = DConfiguration-&gt;StreetMap()-&gt;WayByIndex(WayIndex); //grab each way</span></span>
+<span id="L67"><span class="lineNum">      67</span>              : </span>
+<span id="L68"><span class="lineNum">      68</span>              :             //read rules of the way</span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          44 :             bool IsOneWay = Way-&gt;HasAttribute(&quot;oneway&quot;) &amp;&amp; Way-&gt;GetAttribute(&quot;oneway&quot;) == &quot;yes&quot;; //one-way streets only allow forward travel</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">          12 :             std::string Name = &quot;&quot;; //default to no name if the way doesn't have one</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">          36 :             if(Way-&gt;HasAttribute(&quot;name&quot;)){</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">          12 :                 Name = Way-&gt;GetAttribute(&quot;name&quot;);</span></span>
+<span id="L73"><span class="lineNum">      73</span>              :             }</span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          12 :             double SpeedLimit = DConfiguration-&gt;DefaultSpeedLimit(); //use default of 25mph if not specified</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">          36 :             if(Way-&gt;HasAttribute(&quot;maxspeed&quot;)){</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           3 :                 SpeedLimit = std::stod(Way-&gt;GetAttribute(&quot;maxspeed&quot;));</span></span>
+<span id="L77"><span class="lineNum">      77</span>              :             }</span>
+<span id="L78"><span class="lineNum">      78</span>              :             </span>
+<span id="L79"><span class="lineNum">      79</span>              :             //iterate over the nodes inside the way</span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">          35 :             for(size_t Index = 1; Index &lt; Way-&gt;NodeCount(); Index++){</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">          23 :                 auto FirstNodeID = Way-&gt;GetNodeID(Index-1); //get id of node, index-1 for the previous node</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">          23 :                 auto SecondNodeID = Way-&gt;GetNodeID(Index); </span></span>
+<span id="L83"><span class="lineNum">      83</span>              :                 </span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          23 :                 auto FirstNode = DConfiguration-&gt;StreetMap()-&gt;NodeByID(FirstNodeID); //get the actual node by id</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">          23 :                 auto SecondNode = DConfiguration-&gt;StreetMap()-&gt;NodeByID(SecondNodeID);</span></span>
+<span id="L86"><span class="lineNum">      86</span>              : </span>
+<span id="L87"><span class="lineNum">      87</span>              :                 //calculate distance between the 2 nodes, use haversine because the world is round!!</span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">          23 :                 auto Distance = SGeographicUtils::HaversineDistanceInMiles(FirstNode-&gt;Location(), SecondNode-&gt;Location());</span></span>
+<span id="L89"><span class="lineNum">      89</span>              : </span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          23 :                 auto FirstVertexID = DShortestNodeToVertex[FirstNodeID];</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">          23 :                 auto SecondVertexID = DShortestNodeToVertex[SecondNodeID];</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">          23 :                 DShortestPathRouter.AddEdge(FirstVertexID, SecondVertexID, Distance); //forward edge always added</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">          23 :                 DEdgeStreetName[{FirstNodeID, SecondNodeID}] = Name;</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">          23 :                 DEdgeSpeedLimit[{FirstNodeID, SecondNodeID}] = SpeedLimit;</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">          23 :                 if(!IsOneWay){ //two-way street, also add the reverse edge</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">          15 :                     DShortestPathRouter.AddEdge(SecondVertexID, FirstVertexID, Distance);</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">          15 :                     DEdgeStreetName[{SecondNodeID, FirstNodeID}] = Name;</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">          15 :                     DEdgeSpeedLimit[{SecondNodeID, FirstNodeID}] = SpeedLimit;</span></span>
+<span id="L99"><span class="lineNum">      99</span>              :                 }</span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">          23 :             }</span></span>
+<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">          12 :         }</span></span>
+<span id="L102"><span class="lineNum">     102</span>              : </span>
+<span id="L103"><span class="lineNum">     103</span>              :         //build the fastest path graph with edges weighted by time (distance / speed)</span>
+<span id="L104"><span class="lineNum">     104</span>              :         //walk edges always go both directions regardless of oneway</span>
+<span id="L105"><span class="lineNum">     105</span>              :         //bike edges only go forward on one-way streets and are skipped if bicycle=no</span>
+<span id="L106"><span class="lineNum">     106</span>              :         //bike overwrites walk in DFastestEdgeModes for the same edge since bike is always faster</span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">          17 :         for(size_t WayIndex = 0; WayIndex &lt; DConfiguration-&gt;StreetMap()-&gt;WayCount(); WayIndex++){</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">          12 :             auto Way = DConfiguration-&gt;StreetMap()-&gt;WayByIndex(WayIndex); //grab each way</span></span>
+<span id="L109"><span class="lineNum">     109</span>              :             </span>
+<span id="L110"><span class="lineNum">     110</span>              :             //read rules of the way</span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">          32 :             bool IsOneWay = Way-&gt;HasAttribute(&quot;oneway&quot;) &amp;&amp; Way-&gt;GetAttribute(&quot;oneway&quot;) == &quot;yes&quot;; //one-way streets only allow forward travel</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">          24 :             bool NoBike = Way-&gt;HasAttribute(&quot;bicycle&quot;) &amp;&amp; Way-&gt;GetAttribute(&quot;bicycle&quot;) == &quot;no&quot;; //some ways explicitly ban bikes</span></span>
+<span id="L113"><span class="lineNum">     113</span>              : </span>
+<span id="L114"><span class="lineNum">     114</span>              :             //iterate over the nodes inside the way</span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          35 :             for(size_t Index = 1; Index &lt; Way-&gt;NodeCount(); Index++){</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          23 :                 auto FirstNodeID = Way-&gt;GetNodeID(Index-1); //get id of node, index-1 for the previous node </span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          23 :                 auto SecondNodeID = Way-&gt;GetNodeID(Index);</span></span>
+<span id="L118"><span class="lineNum">     118</span>              : </span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          23 :                 auto FirstNode = DConfiguration-&gt;StreetMap()-&gt;NodeByID(FirstNodeID); //get the actual node by id</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          23 :                 auto SecondNode = DConfiguration-&gt;StreetMap()-&gt;NodeByID(SecondNodeID);</span></span>
+<span id="L121"><span class="lineNum">     121</span>              : </span>
+<span id="L122"><span class="lineNum">     122</span>              :                 //calculate distance between the 2 nodes, use haversine because the world is round</span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          23 :                 auto Distance = SGeographicUtils::HaversineDistanceInMiles(FirstNode-&gt;Location(), SecondNode-&gt;Location());</span></span>
+<span id="L124"><span class="lineNum">     124</span>              : </span>
+<span id="L125"><span class="lineNum">     125</span>              :                 //path router uses vertex IDs so convert from node ID to vertex ID</span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">          23 :                 auto FirstVertexID = DFastestNodeToVertex[FirstNodeID];</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          23 :                 auto SecondVertexID = DFastestNodeToVertex[SecondNodeID];</span></span>
+<span id="L128"><span class="lineNum">     128</span>              : </span>
+<span id="L129"><span class="lineNum">     129</span>              :                 //convert distance to walking time</span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          23 :                 double WalkTime = Distance / DConfiguration-&gt;WalkSpeed(); //divide by walk speed which is 3mph</span></span>
+<span id="L131"><span class="lineNum">     131</span>              :                 </span>
+<span id="L132"><span class="lineNum">     132</span>              :                 //add walk edges</span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">          23 :                 DFastestPathRouter.AddEdge(FirstVertexID, SecondVertexID, WalkTime); //walk forward</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">          23 :                 DFastestEdgeModes[{FirstVertexID, SecondVertexID}] = ETransportationMode::Walk;</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">          23 :                 DFastestPathRouter.AddEdge(SecondVertexID, FirstVertexID, WalkTime); //walk backward</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">          23 :                 DFastestEdgeModes[{SecondVertexID, FirstVertexID}] = ETransportationMode::Walk;</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          23 :                 if(!NoBike){ //only add bike edges if biking is allowed on this road</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          23 :                     double BikeTime = Distance / DConfiguration-&gt;BikeSpeed();</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">          23 :                     DFastestPathRouter.AddEdge(FirstVertexID, SecondVertexID, BikeTime); //bike is faster so it overwrites walk</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">          23 :                     DFastestEdgeModes[{FirstVertexID, SecondVertexID}] = ETransportationMode::Bike;</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">          23 :                     if(!IsOneWay){ //bikes also follow one-way restrictions</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">          15 :                         DFastestPathRouter.AddEdge(SecondVertexID, FirstVertexID, BikeTime);</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">          15 :                         DFastestEdgeModes[{SecondVertexID, FirstVertexID}] = ETransportationMode::Bike;</span></span>
+<span id="L144"><span class="lineNum">     144</span>              :                     }</span>
+<span id="L145"><span class="lineNum">     145</span>              :                 }</span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          23 :             }</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">          12 :         }</span></span>
+<span id="L148"><span class="lineNum">     148</span>              : </span>
+<span id="L149"><span class="lineNum">     149</span>              :         // Add bus edges to the fastest path graph between adjacent stops on each route</span>
+<span id="L150"><span class="lineNum">     150</span>              :         // Bus time uses the actual road distance (via shortest path) and per-road speed limits</span>
+<span id="L151"><span class="lineNum">     151</span>              :         // BusStopTime() is in seconds so divide by 3600 to convert to hours</span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">           9 :         for(size_t RouteIndex = 0; RouteIndex &lt; DConfiguration-&gt;BusSystem()-&gt;RouteCount(); RouteIndex++){</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">           4 :             auto Route = DConfiguration-&gt;BusSystem()-&gt;RouteByIndex(RouteIndex);</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">          20 :             for(size_t Index = 1; Index &lt; Route-&gt;StopCount(); Index++){</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          16 :                 auto PrevStop = DConfiguration-&gt;BusSystem()-&gt;StopByID(Route-&gt;GetStopID(Index-1));</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">          16 :                 auto CurrStop = DConfiguration-&gt;BusSystem()-&gt;StopByID(Route-&gt;GetStopID(Index));</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">          16 :                 std::vector&lt;CPathRouter::TVertexID&gt; ShortestPath;</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">          48 :                 double RoadDistance = DShortestPathRouter.FindShortestPath(</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">          16 :                     DShortestNodeToVertex[PrevStop-&gt;NodeID()],</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">          16 :                     DShortestNodeToVertex[CurrStop-&gt;NodeID()],</span></span>
+<span id="L161"><span class="lineNum">     161</span>              :                     ShortestPath</span>
+<span id="L162"><span class="lineNum">     162</span>              :                 );</span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">          16 :                 if(RoadDistance == CPathRouter::NoPathExists){ //if no road connection between these stops, skip</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaUNC">           0 :                     continue;</span></span>
+<span id="L165"><span class="lineNum">     165</span>              :                 }</span>
+<span id="L166"><span class="lineNum">     166</span>              : </span>
+<span id="L167"><span class="lineNum">     167</span>              :                 // Sum time for each road segment using that road's actual speed limit</span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          16 :                 double BusTime = 0;</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          40 :                 for(size_t k = 1; k &lt; ShortestPath.size(); k++){</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          24 :                     auto PrevNodeID = std::any_cast&lt;TNodeID&gt;(DShortestPathRouter.GetVertexTag(ShortestPath[k-1]));</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">          24 :                     auto CurrNodeID = std::any_cast&lt;TNodeID&gt;(DShortestPathRouter.GetVertexTag(ShortestPath[k]));</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          24 :                     auto PrevNode = DConfiguration-&gt;StreetMap()-&gt;NodeByID(PrevNodeID);</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          24 :                     auto CurrNode = DConfiguration-&gt;StreetMap()-&gt;NodeByID(CurrNodeID);</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          24 :                     double SegDist = SGeographicUtils::HaversineDistanceInMiles(PrevNode-&gt;Location(), CurrNode-&gt;Location());</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">          24 :                     double SpeedLimit = DConfiguration-&gt;DefaultSpeedLimit(); //fallback if edge isn't in our map</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          24 :                     if(DEdgeSpeedLimit.count({PrevNodeID, CurrNodeID})){</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          24 :                         SpeedLimit = DEdgeSpeedLimit.at({PrevNodeID, CurrNodeID});</span></span>
+<span id="L178"><span class="lineNum">     178</span>              :                     }</span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          24 :                     BusTime += SegDist / SpeedLimit;</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">          24 :                 }</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">          16 :                 auto PrevVertexID = DFastestNodeToVertex[PrevStop-&gt;NodeID()];</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          16 :                 auto CurrVertexID = DFastestNodeToVertex[CurrStop-&gt;NodeID()];</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          16 :                 BusTime += DConfiguration-&gt;BusStopTime() / 3600.0; // add bus stop time per edge</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          16 :                 DFastestPathRouter.AddEdge(PrevVertexID, CurrVertexID, BusTime);</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          16 :                 DFastestEdgeModes[{PrevVertexID, CurrVertexID}] = ETransportationMode::Bus;</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          16 :             }</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">           4 :         }</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">           5 :     }</span></span>
+<span id="L189"><span class="lineNum">     189</span>              : </span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">           5 :     ~SImplementation(){</span></span>
+<span id="L191"><span class="lineNum">     191</span>              : </span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">           5 :     }</span></span>
+<span id="L193"><span class="lineNum">     193</span>              : </span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">           6 :     std::size_t NodeCount() const noexcept{ //returns total number of street map nodes</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           6 :         return DSortedNodes.size();</span></span>
+<span id="L196"><span class="lineNum">     196</span>              :     }</span>
+<span id="L197"><span class="lineNum">     197</span>              : </span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           4 :     std::shared_ptr&lt;CStreetMap::SNode&gt; SortedNodeByIndex(std::size_t index) const noexcept{ //returns node at given index, nullptr if out of bounds</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">           4 :         if(index &gt;= DSortedNodes.size()){</span></span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :             return nullptr;</span></span>
+<span id="L201"><span class="lineNum">     201</span>              :         }</span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">           4 :         return DSortedNodes[index];</span></span>
+<span id="L203"><span class="lineNum">     203</span>              :     }</span>
+<span id="L204"><span class="lineNum">     204</span>              : </span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">           2 :     double FindShortestPath(TNodeID src, TNodeID dest, std::vector&lt;TNodeID&gt; &amp;path){ //returns distance in miles, fills path with node IDs</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           2 :         path.clear();</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">           2 :         if(!DShortestNodeToVertex.count(src) || !DShortestNodeToVertex.count(dest)){ //src or dest not in the map</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">           1 :             return CPathRouter::NoPathExists;</span></span>
+<span id="L209"><span class="lineNum">     209</span>              :         }</span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">           1 :         std::vector&lt;CPathRouter::TVertexID&gt; VertexPath;</span></span>
+<span id="L211"><span class="lineNum">     211</span>              : </span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">           1 :         double Distance = DShortestPathRouter.FindShortestPath(DShortestNodeToVertex.at(src), DShortestNodeToVertex.at(dest), VertexPath);</span></span>
+<span id="L213"><span class="lineNum">     213</span>              : </span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">           1 :         if(Distance == CPathRouter::NoPathExists){ //no path found</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaUNC">           0 :             return CPathRouter::NoPathExists;</span></span>
+<span id="L216"><span class="lineNum">     216</span>              :         }</span>
+<span id="L217"><span class="lineNum">     217</span>              : </span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           5 :         for(auto VertexID : VertexPath){ //convert vertex IDs back to node IDs</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">           4 :             path.push_back(std::any_cast&lt;TNodeID&gt;(DShortestPathRouter.GetVertexTag(VertexID)));</span></span>
+<span id="L220"><span class="lineNum">     220</span>              :         }</span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">           1 :         return Distance;</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">           1 :     }</span></span>
+<span id="L223"><span class="lineNum">     223</span>              : </span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">           3 :     double FindFastestPath(TNodeID src, TNodeID dest, std::vector&lt;TTripStep&gt; &amp;path){ //returns time in hours, fills path with (mode, nodeID) pairs</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">           3 :         path.clear();</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           3 :         if(!DFastestNodeToVertex.count(src) || !DFastestNodeToVertex.count(dest)){ //check if source or destination  not in the map</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           1 :             return CPathRouter::NoPathExists;</span></span>
+<span id="L228"><span class="lineNum">     228</span>              :         }</span>
+<span id="L229"><span class="lineNum">     229</span>              : </span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">           2 :         std::vector&lt;CPathRouter::TVertexID&gt; VertexPath;</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           2 :         double Time = DFastestPathRouter.FindShortestPath(DFastestNodeToVertex.at(src), DFastestNodeToVertex.at(dest), VertexPath);</span></span>
+<span id="L232"><span class="lineNum">     232</span>              : </span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">           2 :         if(Time == CPathRouter::NoPathExists){ //no path found</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaUNC">           0 :             return CPathRouter::NoPathExists;</span></span>
+<span id="L235"><span class="lineNum">     235</span>              :         }</span>
+<span id="L236"><span class="lineNum">     236</span>              : </span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">           7 :         for(size_t i = 0; i &lt; VertexPath.size(); i++){</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">           5 :             auto NodeID = std::any_cast&lt;TNodeID&gt;(DFastestPathRouter.GetVertexTag(VertexPath[i]));</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">           5 :             if(i == 0){ //if first step is the starting node</span></span>
+<span id="L240"><span class="lineNum">     240</span>              :                 // Use the mode of the first edge, unless it's Bus</span>
+<span id="L241"><span class="lineNum">     241</span>              :                 // (&quot;You cannot take your bike on the bus, so if you take the bus you must walk to it&quot;)</span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           2 :                 ETransportationMode FirstMode = ETransportationMode::Walk;</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           2 :                 if(VertexPath.size() &gt; 1){</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           2 :                     auto It = DFastestEdgeModes.find({VertexPath[0], VertexPath[1]});</span></span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">           2 :                     if(It != DFastestEdgeModes.end() &amp;&amp; It-&gt;second == ETransportationMode::Bike){</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           1 :                         FirstMode = ETransportationMode::Bike;</span></span>
+<span id="L247"><span class="lineNum">     247</span>              :                     }</span>
+<span id="L248"><span class="lineNum">     248</span>              :                 }</span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">           2 :                 path.push_back({FirstMode, NodeID});</span></span>
+<span id="L250"><span class="lineNum">     250</span>              :             }</span>
+<span id="L251"><span class="lineNum">     251</span>              :             else{ </span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           3 :                 auto ModeIt = DFastestEdgeModes.find({VertexPath[i-1], VertexPath[i]}); //Look up the mode for this edge</span></span>
+<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">           3 :                 auto Mode = ETransportationMode::Walk; //default to walk if edge not found</span></span>
+<span id="L254"><span class="lineNum">     254</span>              :                 </span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           3 :                 if(ModeIt != DFastestEdgeModes.end()){</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">           3 :                     Mode = ModeIt-&gt;second;</span></span>
+<span id="L257"><span class="lineNum">     257</span>              :                 }</span>
+<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">           3 :                 path.push_back({Mode, NodeID});</span></span>
+<span id="L259"><span class="lineNum">     259</span>              : </span>
+<span id="L260"><span class="lineNum">     260</span>              :             }</span>
+<span id="L261"><span class="lineNum">     261</span>              :         }</span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">           2 :         return Time;</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">           2 :     }</span></span>
+<span id="L264"><span class="lineNum">     264</span>              : </span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">           3 :     bool GetPathDescription(const std::vector&lt;TTripStep&gt; &amp;path, std::vector&lt;std::string&gt; &amp;desc) const{ //converts trip steps into human-readable strings</span></span>
+<span id="L266"><span class="lineNum">     266</span> <span class="tlaGNC">           3 :         desc.clear();</span></span>
+<span id="L267"><span class="lineNum">     267</span> <span class="tlaGNC">           3 :         if(path.empty()){</span></span>
+<span id="L268"><span class="lineNum">     268</span> <span class="tlaUNC">           0 :             return false;</span></span>
+<span id="L269"><span class="lineNum">     269</span>              :         }</span>
+<span id="L270"><span class="lineNum">     270</span>              : </span>
+<span id="L271"><span class="lineNum">     271</span>              :         //get a street map node by its ID</span>
+<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC">          46 :         auto GetNode = [this](TNodeID id){ return DConfiguration-&gt;StreetMap()-&gt;NodeByID(id); };</span></span>
+<span id="L273"><span class="lineNum">     273</span>              : </span>
+<span id="L274"><span class="lineNum">     274</span>              :         //format the distance using feet if below 0.1 miles, otherwise in miles w/ 2 sig figs</span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">           9 :         auto FormatDist = [](double dist) -&gt; std::string {</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">           9 :             if(dist &lt; 0.1){</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaUNC">           0 :                 return std::format(&quot;{:.0f} ft&quot;, dist * 5280.0);</span></span>
+<span id="L278"><span class="lineNum">     278</span>              :             }</span>
+<span id="L279"><span class="lineNum">     279</span> <span class="tlaGNC">           9 :             return std::format(&quot;{:.2g} mi&quot;, dist);</span></span>
+<span id="L280"><span class="lineNum">     280</span>              :         };</span>
+<span id="L281"><span class="lineNum">     281</span>              : </span>
+<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">           3 :         auto StartNode = GetNode(path[0].second);</span></span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">           3 :         if(!StartNode){ //invalid starting node</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaUNC">           0 :             return false;</span></span>
+<span id="L285"><span class="lineNum">     285</span>              :         }</span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">           3 :         desc.push_back(&quot;Start at &quot; + SGeographicUtils::ConvertLLToDMS(StartNode-&gt;Location()));</span></span>
+<span id="L287"><span class="lineNum">     287</span>              : </span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           3 :         size_t i = 1;</span></span>
+<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">          13 :         while(i &lt; path.size()){</span></span>
+<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">          10 :             auto Mode = path[i].first;</span></span>
+<span id="L291"><span class="lineNum">     291</span> <span class="tlaGNC">          10 :             auto PrevNodeID = path[i-1].second;</span></span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">          10 :             auto CurrNodeID = path[i].second;</span></span>
+<span id="L293"><span class="lineNum">     293</span>              : </span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">          10 :             if(Mode == ETransportationMode::Bus){</span></span>
+<span id="L295"><span class="lineNum">     295</span>              :                 //collect all consecutive bus steps to find the full board/exit range</span>
+<span id="L296"><span class="lineNum">     296</span> <span class="tlaGNC">           1 :                 TNodeID BoardNodeID = PrevNodeID; //node where the passenger boards the bus</span></span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">           1 :                 TNodeID ExitNodeID = CurrNodeID; //will be updated to the last consecutive bus node</span></span>
+<span id="L298"><span class="lineNum">     298</span>              :                 </span>
+<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">           2 :                 while(i + 1 &lt; path.size() &amp;&amp; path[i+1].first == ETransportationMode::Bus){</span></span>
+<span id="L300"><span class="lineNum">     300</span> <span class="tlaGNC">           1 :                     i++;</span></span>
+<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">           1 :                     ExitNodeID = path[i].second;</span></span>
+<span id="L302"><span class="lineNum">     302</span>              :                 }</span>
+<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC">           1 :                 auto BoardStop = DBusSystemIndexer.StopByNodeID(BoardNodeID); //look up the bus stop at the boarding node</span></span>
+<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">           1 :                 auto ExitStop = DBusSystemIndexer.StopByNodeID(ExitNodeID); //look up the bus stop at the exit node</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">           1 :                 if(!BoardStop || !ExitStop){ //these nodes aren't bus stops, something went wrong</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaUNC">           0 :                     return false;</span></span>
+<span id="L307"><span class="lineNum">     307</span>              :                 }</span>
+<span id="L308"><span class="lineNum">     308</span>              : </span>
+<span id="L309"><span class="lineNum">     309</span>              :                 //find the route that contains board→exit in order and goes furthest past exit.</span>
+<span id="L310"><span class="lineNum">     310</span>              :                 //tie-break: alphabetical route name.</span>
+<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">           1 :                 std::string BestRoute = &quot;&quot;;</span></span>
+<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">           1 :                 double BestRemaining = -1;</span></span>
+<span id="L313"><span class="lineNum">     313</span> <span class="tlaGNC">           3 :                 for(size_t r = 0; r &lt; DConfiguration-&gt;BusSystem()-&gt;RouteCount(); r++){</span></span>
+<span id="L314"><span class="lineNum">     314</span> <span class="tlaGNC">           2 :                     auto Route = DConfiguration-&gt;BusSystem()-&gt;RouteByIndex(r);</span></span>
+<span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">           2 :                     bool FoundBoard = false;</span></span>
+<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">           9 :                     for(size_t s = 0; s &lt; Route-&gt;StopCount(); s++){</span></span>
+<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">           8 :                         if(!FoundBoard &amp;&amp; Route-&gt;GetStopID(s) == BoardStop-&gt;ID()){ //find where we board on this route</span></span>
+<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">           1 :                             FoundBoard = true;</span></span>
+<span id="L319"><span class="lineNum">     319</span>              :                         }</span>
+<span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">           8 :                         if(FoundBoard &amp;&amp; Route-&gt;GetStopID(s) == ExitStop-&gt;ID()){ //found the exit stop after boarding</span></span>
+<span id="L321"><span class="lineNum">     321</span>              :                             //calculate remaining distance the route continues past our exit stop</span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">           1 :                             double Remaining = 0;</span></span>
+<span id="L323"><span class="lineNum">     323</span> <span class="tlaGNC">           3 :                             for(size_t k = s + 1; k &lt; Route-&gt;StopCount(); k++){</span></span>
+<span id="L324"><span class="lineNum">     324</span> <span class="tlaGNC">           2 :                                 auto SA = DConfiguration-&gt;BusSystem()-&gt;StopByID(Route-&gt;GetStopID(k-1));</span></span>
+<span id="L325"><span class="lineNum">     325</span> <span class="tlaGNC">           2 :                                 auto SB = DConfiguration-&gt;BusSystem()-&gt;StopByID(Route-&gt;GetStopID(k));</span></span>
+<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC">           2 :                                 auto NA = DConfiguration-&gt;StreetMap()-&gt;NodeByID(SA-&gt;NodeID());</span></span>
+<span id="L327"><span class="lineNum">     327</span> <span class="tlaGNC">           2 :                                 auto NB = DConfiguration-&gt;StreetMap()-&gt;NodeByID(SB-&gt;NodeID());</span></span>
+<span id="L328"><span class="lineNum">     328</span> <span class="tlaGNC">           2 :                                 if(NA &amp;&amp; NB){</span></span>
+<span id="L329"><span class="lineNum">     329</span> <span class="tlaGNC">           2 :                                     Remaining += SGeographicUtils::HaversineDistanceInMiles(NA-&gt;Location(), NB-&gt;Location());</span></span>
+<span id="L330"><span class="lineNum">     330</span>              :                                 }</span>
+<span id="L331"><span class="lineNum">     331</span> <span class="tlaGNC">           2 :                             }</span></span>
+<span id="L332"><span class="lineNum">     332</span> <span class="tlaGNC">           1 :                             if(Remaining &gt; BestRemaining || (Remaining == BestRemaining &amp;&amp; (BestRoute.empty() || Route-&gt;Name() &lt; BestRoute))){</span></span>
+<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">           1 :                                 BestRemaining = Remaining;</span></span>
+<span id="L334"><span class="lineNum">     334</span> <span class="tlaGNC">           1 :                                 BestRoute = Route-&gt;Name();</span></span>
+<span id="L335"><span class="lineNum">     335</span>              :                             }</span>
+<span id="L336"><span class="lineNum">     336</span> <span class="tlaGNC">           1 :                             break;</span></span>
+<span id="L337"><span class="lineNum">     337</span>              :                         }</span>
+<span id="L338"><span class="lineNum">     338</span>              :                     }</span>
+<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">           2 :                 }</span></span>
+<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">           4 :                 desc.push_back(&quot;Take Bus &quot; + BestRoute + &quot; from stop &quot; +</span></span>
+<span id="L341"><span class="lineNum">     341</span> <span class="tlaGNC">           3 :                                std::to_string(BoardStop-&gt;ID()) + &quot; to stop &quot; +</span></span>
+<span id="L342"><span class="lineNum">     342</span> <span class="tlaGNC">           2 :                                std::to_string(ExitStop-&gt;ID()));</span></span>
+<span id="L343"><span class="lineNum">     343</span> <span class="tlaGNC">           1 :             }</span></span>
+<span id="L344"><span class="lineNum">     344</span>              :             else{ //walk or bike segment</span>
+<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">           9 :                 std::string ModeStr = &quot;Walk&quot;;</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">           9 :                 if(Mode == ETransportationMode::Bike){</span></span>
+<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">           6 :                     ModeStr = &quot;Bike&quot;;</span></span>
+<span id="L348"><span class="lineNum">     348</span>              :                 }</span>
+<span id="L349"><span class="lineNum">     349</span> <span class="tlaGNC">           9 :                 std::string StreetName = &quot;&quot;; //default to no name if edge isn't in our map</span></span>
+<span id="L350"><span class="lineNum">     350</span> <span class="tlaGNC">           9 :                 if(DEdgeStreetName.count({PrevNodeID, CurrNodeID})){</span></span>
+<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC">           9 :                     StreetName = DEdgeStreetName.at({PrevNodeID, CurrNodeID});</span></span>
+<span id="L352"><span class="lineNum">     352</span>              :                 }</span>
+<span id="L353"><span class="lineNum">     353</span>              : </span>
+<span id="L354"><span class="lineNum">     354</span> <span class="tlaGNC">           9 :                 TNodeID GroupStartNodeID = PrevNodeID; //first node of this street segment group</span></span>
+<span id="L355"><span class="lineNum">     355</span> <span class="tlaGNC">           9 :                 TNodeID GroupEndNodeID = CurrNodeID; //last node, extended as we group consecutive same-street steps</span></span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">           9 :                 double GroupDist = SGeographicUtils::HaversineDistanceInMiles(</span></span>
+<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">          18 :                     GetNode(PrevNodeID)-&gt;Location(), GetNode(CurrNodeID)-&gt;Location());</span></span>
+<span id="L358"><span class="lineNum">     358</span>              : </span>
+<span id="L359"><span class="lineNum">     359</span>              :                 // Keep extending the group while the next step uses the same mode and street name</span>
+<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">          11 :                 while(i + 1 &lt; path.size() &amp;&amp; path[i+1].first == Mode){</span></span>
+<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">           7 :                     auto NextNodeID = path[i+1].second;</span></span>
+<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">           7 :                     std::string NextName = &quot;&quot;;</span></span>
+<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">           7 :                     if(DEdgeStreetName.count({CurrNodeID, NextNodeID})){</span></span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">           7 :                         NextName = DEdgeStreetName.at({CurrNodeID, NextNodeID});</span></span>
+<span id="L365"><span class="lineNum">     365</span>              :                     }</span>
+<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">           7 :                     if(NextName != StreetName){ //different street, end the group</span></span>
+<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">           5 :                         break;</span></span>
+<span id="L368"><span class="lineNum">     368</span>              :                     }</span>
+<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">           2 :                     i++;</span></span>
+<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">           2 :                     GroupDist += SGeographicUtils::HaversineDistanceInMiles(</span></span>
+<span id="L371"><span class="lineNum">     371</span> <span class="tlaGNC">           4 :                         GetNode(GroupEndNodeID)-&gt;Location(), GetNode(NextNodeID)-&gt;Location());</span></span>
+<span id="L372"><span class="lineNum">     372</span> <span class="tlaGNC">           2 :                     GroupEndNodeID = NextNodeID;</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">           2 :                     CurrNodeID = NextNodeID;</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">           7 :                 }</span></span>
+<span id="L375"><span class="lineNum">     375</span>              : </span>
+<span id="L376"><span class="lineNum">     376</span>              :                 //direction is calculated from the start to the end of the whole group, not just to the next node</span>
+<span id="L377"><span class="lineNum">     377</span> <span class="tlaGNC">           9 :                 double Bearing = SGeographicUtils::CalculateBearing(</span></span>
+<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">          18 :                     GetNode(GroupStartNodeID)-&gt;Location(), GetNode(GroupEndNodeID)-&gt;Location());</span></span>
+<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">           9 :                 std::string Dir = SGeographicUtils::BearingToDirection(Bearing);</span></span>
+<span id="L380"><span class="lineNum">     380</span>              : </span>
+<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">           9 :                 std::string Line = ModeStr + &quot; &quot; + Dir + &quot; &quot;;</span></span>
+<span id="L382"><span class="lineNum">     382</span> <span class="tlaGNC">           9 :                 if(!StreetName.empty()){</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">           7 :                     Line += &quot;along &quot; + StreetName; //named street: &quot;along Main St.&quot;</span></span>
+<span id="L384"><span class="lineNum">     384</span>              :                 }</span>
+<span id="L385"><span class="lineNum">     385</span>              :                 else{</span>
+<span id="L386"><span class="lineNum">     386</span>              :                     //unnamed street, look ahead for the next named street, or say &quot;End&quot;</span>
+<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">           2 :                     std::string NextName = &quot;End&quot;;</span></span>
+<span id="L388"><span class="lineNum">     388</span> <span class="tlaGNC">           2 :                     for(size_t j = i + 1; j &lt; path.size(); j++){</span></span>
+<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">           1 :                         auto JPrev = path[j-1].second;</span></span>
+<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">           1 :                         auto JCurr = path[j].second;</span></span>
+<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">           1 :                         if(DEdgeStreetName.count({JPrev, JCurr})){</span></span>
+<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">           1 :                             std::string JName = DEdgeStreetName.at({JPrev, JCurr});</span></span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">           1 :                             if(!JName.empty()){</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">           1 :                                 NextName = JName;</span></span>
+<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">           1 :                                 break;</span></span>
+<span id="L396"><span class="lineNum">     396</span>              :                             }</span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">           1 :                         }</span></span>
+<span id="L398"><span class="lineNum">     398</span>              :                     }</span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           2 :                     Line += &quot;toward &quot; + NextName; //unnamed street: &quot;toward Main St.&quot; or &quot;toward End&quot;</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           2 :                 }</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           9 :                 Line += &quot; for &quot; + FormatDist(GroupDist);</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">           9 :                 desc.push_back(Line);</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">           9 :             }</span></span>
+<span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">          10 :             i++;</span></span>
+<span id="L405"><span class="lineNum">     405</span>              :         }</span>
+<span id="L406"><span class="lineNum">     406</span>              : </span>
+<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">           3 :         auto EndNode = GetNode(path.back().second);</span></span>
+<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">           3 :         desc.push_back(&quot;End at &quot; + SGeographicUtils::ConvertLLToDMS(EndNode-&gt;Location()));</span></span>
+<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">           3 :         return true;</span></span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">           3 :     }</span></span>
+<span id="L411"><span class="lineNum">     411</span>              : };</span>
+<span id="L412"><span class="lineNum">     412</span>              : </span>
+<span id="L413"><span class="lineNum">     413</span>              : // Constructor for the Dijkstra Transportation Planner</span>
+<span id="L414"><span class="lineNum">     414</span> <span class="tlaGNC">           5 : CDijkstraTransportationPlanner::CDijkstraTransportationPlanner(std::shared_ptr&lt;SConfiguration&gt; config){</span></span>
+<span id="L415"><span class="lineNum">     415</span> <span class="tlaGNC">           5 :     DImplementation = std::make_unique&lt;SImplementation&gt;(config);</span></span>
+<span id="L416"><span class="lineNum">     416</span> <span class="tlaGNC">           5 : }</span></span>
+<span id="L417"><span class="lineNum">     417</span>              : </span>
+<span id="L418"><span class="lineNum">     418</span>              : // Destructor for the Dijkstra Transportation Planner</span>
+<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">           5 : CDijkstraTransportationPlanner::~CDijkstraTransportationPlanner(){</span></span>
+<span id="L420"><span class="lineNum">     420</span>              : </span>
+<span id="L421"><span class="lineNum">     421</span> <span class="tlaGNC">           5 : }</span></span>
+<span id="L422"><span class="lineNum">     422</span>              : </span>
+<span id="L423"><span class="lineNum">     423</span>              : // Returns the number of nodes in the street map</span>
+<span id="L424"><span class="lineNum">     424</span> <span class="tlaGNC">           6 : std::size_t CDijkstraTransportationPlanner::NodeCount() const noexcept{</span></span>
+<span id="L425"><span class="lineNum">     425</span> <span class="tlaGNC">           6 :     return DImplementation-&gt;NodeCount();</span></span>
+<span id="L426"><span class="lineNum">     426</span>              : }</span>
+<span id="L427"><span class="lineNum">     427</span>              : </span>
+<span id="L428"><span class="lineNum">     428</span>              : // Returns the street map node specified by index if index is less than the</span>
+<span id="L429"><span class="lineNum">     429</span>              : // NodeCount(). nullptr is returned if index is greater than or equal to</span>
+<span id="L430"><span class="lineNum">     430</span>              : // NodeCount(). The nodes are sorted by Node ID.</span>
+<span id="L431"><span class="lineNum">     431</span> <span class="tlaGNC">           4 : std::shared_ptr&lt;CStreetMap::SNode&gt; CDijkstraTransportationPlanner::SortedNodeByIndex(std::size_t index) const noexcept{</span></span>
+<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">           4 :     return DImplementation-&gt;SortedNodeByIndex(index);</span></span>
+<span id="L433"><span class="lineNum">     433</span>              : }</span>
+<span id="L434"><span class="lineNum">     434</span>              : </span>
+<span id="L435"><span class="lineNum">     435</span>              : // Returns the distance in miles between the src and dest nodes of the</span>
+<span id="L436"><span class="lineNum">     436</span>              : // shortest path if one exists. NoPathExists is returned if no path exists.</span>
+<span id="L437"><span class="lineNum">     437</span>              : // The nodes of the shortest path are filled in the path parameter.</span>
+<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">           2 : double CDijkstraTransportationPlanner::FindShortestPath(TNodeID src, TNodeID dest, std::vector&lt;TNodeID&gt; &amp;path){</span></span>
+<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">           2 :     return DImplementation-&gt;FindShortestPath(src, dest, path);</span></span>
+<span id="L440"><span class="lineNum">     440</span>              : }</span>
+<span id="L441"><span class="lineNum">     441</span>              : </span>
+<span id="L442"><span class="lineNum">     442</span>              : // Returns the time in hours for the fastest path between the src and dest</span>
+<span id="L443"><span class="lineNum">     443</span>              : // nodes of the if one exists. NoPathExists is returned if no path exists.</span>
+<span id="L444"><span class="lineNum">     444</span>              : // The transportation mode and nodes of the fastest path are filled in the</span>
+<span id="L445"><span class="lineNum">     445</span>              : // path parameter.</span>
+<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">           3 : double CDijkstraTransportationPlanner::FindFastestPath(TNodeID src, TNodeID dest, std::vector&lt;TTripStep&gt; &amp;path){</span></span>
+<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">           3 :     return DImplementation-&gt;FindFastestPath(src, dest, path);</span></span>
+<span id="L448"><span class="lineNum">     448</span>              : }</span>
+<span id="L449"><span class="lineNum">     449</span>              : </span>
+<span id="L450"><span class="lineNum">     450</span>              : // Returns true if the path description is created. Takes the trip steps path</span>
+<span id="L451"><span class="lineNum">     451</span>              : // and converts it into a human readable set of steps.</span>
+<span id="L452"><span class="lineNum">     452</span> <span class="tlaGNC">           3 : bool CDijkstraTransportationPlanner::GetPathDescription(const std::vector&lt;TTripStep&gt; &amp;path, std::vector&lt;std::string&gt; &amp;desc) const{</span></span>
+<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">           3 :     return DImplementation-&gt;GetPathDescription(path, desc);</span></span>
+<span id="L454"><span class="lineNum">     454</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.0-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>
