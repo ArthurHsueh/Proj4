@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="3" failures="1" disabled="0" errors="0" time="0." timestamp="2026-03-11T04:54:24.489" name="AllTests">
+  <testsuite name="CSVBusSystemIndexer" tests="3" failures="1" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-11T04:54:24.490">
+    <testcase name="SimpleTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="13" status="run" result="completed" time="0." timestamp="2026-03-11T04:54:24.490" classname="CSVBusSystemIndexer" />
+    <testcase name="StopTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="29" status="run" result="completed" time="0." timestamp="2026-03-11T04:54:24.490" classname="CSVBusSystemIndexer">
+      <failure message="testsrc/CSVBusSystemIndexerTest.cpp:43&#x0A;Expected equality of these values:&#x0A;  Stop1Index&#x0A;    Which is: (ptr = 0xaaaae9283e10, value = 8-byte object &lt;B8-E4 99-D6 AA-AA 00-00&gt;)&#x0A;  Stop1Node&#x0A;    Which is: (nullptr)&#x0A;" type=""><![CDATA[testsrc/CSVBusSystemIndexerTest.cpp:43
+Expected equality of these values:
+  Stop1Index
+    Which is: (ptr = 0xaaaae9283e10, value = 8-byte object <B8-E4 99-D6 AA-AA 00-00>)
+  Stop1Node
+    Which is: (nullptr)
+]]></failure>
+      <failure message="testsrc/CSVBusSystemIndexerTest.cpp:49&#x0A;Expected equality of these values:&#x0A;  Stop2Index&#x0A;    Which is: (ptr = 0xaaaae9283d90, value = 8-byte object &lt;B8-E4 99-D6 AA-AA 00-00&gt;)&#x0A;  Stop2Node&#x0A;    Which is: (nullptr)&#x0A;" type=""><![CDATA[testsrc/CSVBusSystemIndexerTest.cpp:49
+Expected equality of these values:
+  Stop2Index
+    Which is: (ptr = 0xaaaae9283d90, value = 8-byte object <B8-E4 99-D6 AA-AA 00-00>)
+  Stop2Node
+    Which is: (nullptr)
+]]></failure>
+    </testcase>
+    <testcase name="RouteTest" file="testsrc/CSVBusSystemIndexerTest.cpp" line="55" status="run" result="completed" time="0." timestamp="2026-03-11T04:54:24.490" classname="CSVBusSystemIndexer" />
+  </testsuite>
+</testsuites>

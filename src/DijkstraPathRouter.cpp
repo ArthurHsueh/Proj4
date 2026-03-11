@@ -42,7 +42,7 @@ struct CDijkstraPathRouter::SImplementation{
         if(src < DVertices.size() && dest < DVertices.size()){ //Checks if the IDs' are valid
             DVertices[src]->DEdges.push_back(std::make_pair(weight,dest)); //Create the edge
             if(bidir){
-                DVertices[dest]->DEdges.push_back(std::make_pair(weight,dest)); //If bidirectional, create the edge going the other direction as well
+                DVertices[dest]->DEdges.push_back(std::make_pair(weight,src)); //If bidirectional, create the edge going the other direction as well
             }
             return true; //Return true on success
         }

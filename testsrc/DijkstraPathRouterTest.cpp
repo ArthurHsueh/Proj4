@@ -38,6 +38,7 @@ TEST(DijkstraPathRouter, ShortestPath){
 
 TEST(DijkstraPathRouter, ShortestPathHardTest){
     CDijkstraPathRouter PathRouter;
+
     auto A = PathRouter.AddVertex(std::string("A"));
     auto B = PathRouter.AddVertex(std::string("B"));
     auto C = PathRouter.AddVertex(std::string("C"));
@@ -55,8 +56,7 @@ TEST(DijkstraPathRouter, ShortestPathHardTest){
     EXPECT_TRUE(PathRouter.AddEdge(E,F,2.0));
     EXPECT_TRUE(PathRouter.AddEdge(D,G,1.0));
     EXPECT_TRUE(PathRouter.AddEdge(G,H,1.0));
-    EXPECT_TRUE(PathRouter.AddEdge(F,H,10.0));
-    EXPECT_TRUE(PathRouter.AddEdge(H,F,5.0));
+    EXPECT_TRUE(PathRouter.AddEdge(F,H,10.0, true));
     std::vector<CPathRouter::TVertexID> Path;
     EXPECT_EQ(PathRouter.FindShortestPath(A,H,Path),6.5);
     std::vector<CPathRouter::TVertexID> ExpectedPath{A,B,D,G,H};
@@ -65,7 +65,6 @@ TEST(DijkstraPathRouter, ShortestPathHardTest){
     EXPECT_EQ(std::any_cast<std::string>(PathRouter.GetVertexTag(7)), "H");
     EXPECT_THROW(std::any_cast<std::string>(PathRouter.GetVertexTag(100)), std::bad_any_cast);
 }
-
 
 TEST(DijkstraPathRouter, ShortestPathUnreachableTest){
     CDijkstraPathRouter PathRouter;
