@@ -30,7 +30,7 @@ Collects and sorts all street map nodes by ID
 
 Registers every node as a vertex in both the shortest and fastest path routers
 
-Builds the shortest path graph with weighted edges by distance in miles while respecting the rules of the roda
+Builds the shortest path graph with weighted edges by distance in miles while respecting the rules of the road
 
 Builds the fastest path graph with walk and bike edges weighted by time in hours, where walking ignores oneway restrictions and biking respects them
 
@@ -61,9 +61,9 @@ The first step defaults to Walk unless the first edge is Bike, as the only other
 ### bool GetPathDescription(const std::vector<TTripStep> &path, std::vector<std::string> &desc) const override;
 The function first clears desc, then eturns false if path is empty or the starting node is invalid. Then, it pushes a string of "Start at " and the coordinates of a node's location. 
 
-For bus segments, the function collects all consecutive bus steps to find the full board and exit nodes. Then, it looks up the corresponding bus stops via DBusSystemIndexer.StopByNodeID. Then, it serarches all routes to find the one that contains the board and exit segment in order and continues furthest past the exit stop. If multiple routes are taken, the bus with the earliest sorted name is taken. Finally, it pushes a "Take Bus <route> from stop <id> to stop <id>" string.
+For bus segments, the function collects all consecutive bus steps to find the full board and exit nodes. Then, it looks up the corresponding bus stops via DBusSystemIndexer.StopByNodeID. Then, it serarches all routes to find the one that contains the board and exit segment in order and continues furthest past the exit stop. If multiple routes are taken, the bus with the earliest sorted name is taken. Finally, it pushes a "Take Bus (route) from stop (id) to stop (id)" string.
 
-For walk/bike segments, the function groups consecutive steps of the same mode and street name together. Then, it calculates the total group distance and the bearing from the group start to end using CalculateBearing and BearingToDirection. If the street is named, the function pushes "Walk/Bike <dir> along <name> for <dist>". If unnamed, it looks ahead for the next named street and pushes "Walk/Bike <dir> toward <name> for <dist>". If Distance below 0.1 mile, it is shown in feet, otherwise in miles with 2 significant figures.
+For walk/bike segments, the function groups consecutive steps of the same mode and street name together. Then, it calculates the total group distance and the bearing from the group start to end using CalculateBearing and BearingToDirection. If the street is named, the function pushes "Walk/Bike (dir) along name for (dist). If unnamed, it looks ahead for the next named street and pushes "Walk/Bike (dir) toward (name) for (dist)". If Distance below 0.1 mile, it is shown in feet, otherwise in miles with 2 significant figures.
  
 
 
