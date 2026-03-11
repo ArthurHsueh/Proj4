@@ -237,8 +237,8 @@ struct CDijkstraTransportationPlanner::SImplementation{
         for(size_t i = 0; i < VertexPath.size(); i++){
             auto NodeID = std::any_cast<TNodeID>(DFastestPathRouter.GetVertexTag(VertexPath[i]));
             if(i == 0){ //if first step is the starting node
-                // Use the mode of the first edge, unless it's Bus
-                // ("You cannot take your bike on the bus, so if you take the bus you must walk to it")
+                //use the mode of the first edge, unless it's Bus
+                //("You cannot take your bike on the bus, so if you take the bus you must walk to it")
                 ETransportationMode FirstMode = ETransportationMode::Walk;
                 if(VertexPath.size() > 1){
                     auto It = DFastestEdgeModes.find({VertexPath[0], VertexPath[1]});
@@ -356,7 +356,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 double GroupDist = SGeographicUtils::HaversineDistanceInMiles(
                     GetNode(PrevNodeID)->Location(), GetNode(CurrNodeID)->Location());
 
-                // Keep extending the group while the next step uses the same mode and street name
+                //keep extending the group while the next step uses the same mode and street name
                 while(i + 1 < path.size() && path[i+1].first == Mode){
                     auto NextNodeID = path[i+1].second;
                     std::string NextName = "";
@@ -380,7 +380,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
 
                 std::string Line = ModeStr + " " + Dir + " ";
                 if(!StreetName.empty()){
-                    Line += "along " + StreetName; //named street: "along Main St."
+                    Line += "along " + StreetName; 
                 }
                 else{
                     //unnamed street, look ahead for the next named street, or say "End"
