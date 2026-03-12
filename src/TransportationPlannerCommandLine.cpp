@@ -205,6 +205,9 @@ struct CTransportationPlannerCommandLine::SImplementation{
                 }
                 command += ch;
             }
+            if(command.empty()){
+                continue;
+            }
             std::vector<std::string> commandsplit = StringUtils::Split(command); //Split the command by space, allowing us to parse the parameters
 
             if (commandsplit[0] == "exit"){  //If command is exit, we terminate the program
