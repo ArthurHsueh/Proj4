@@ -5,19 +5,16 @@
 #include <sstream>
 #include <iomanip>
 
-
 struct CTransportationPlannerCommandLine::SImplementation{
     std::shared_ptr<CDataSource> DCommandDataSource;
     std::shared_ptr<CDataSink> DOutputDataSink;
     std::shared_ptr<CDataSink> DErrorDataSink;
     std::shared_ptr<CDataFactory> DResultsDataFactory;
     std::shared_ptr<CTransportationPlanner> DTransportationPlanner;
-
     std::vector<CTransportationPlanner::TNodeID> path; //Store the latest shortests path
     std::vector<CTransportationPlanner::TTripStep> steps; //Store the latest fastest steps
     CTransportationPlanner::TNodeID src; //Store the latest src node
     CTransportationPlanner::TNodeID dest; //Store the latest dest node
-
     double time; //Store the latest fastest time 
 
     SImplementation(std::shared_ptr<CDataSource> cmdsrc, std::shared_ptr<CDataSink> outsink, std::shared_ptr<CDataSink> errsink, std::shared_ptr<CDataFactory> results, std::shared_ptr<CTransportationPlanner> planner){
@@ -87,8 +84,15 @@ struct CTransportationPlannerCommandLine::SImplementation{
         }
         
         std::stringstream stream;
-        stream << std::fixed << std::setprecision(1) << distance; //1 decimal point
-        std::string outputstring = "Shortest path is " + stream.str() + " mi." + "\n";
+        std::string outputstring;
+        if (distance > 0.1){
+            stream << std::fixed << std::setprecision(1) << distance; //1 decimal point
+            outputstring = "Shortest path is " + stream.str() + " mi." + "\n";
+        }
+        else{ //Convert to feet
+            int feet = distance * 5280;
+            outputstring = "Shortest path is " + std::to_string(feet) + " ft." + "\n";
+        }
         for(char c: outputstring){
             DOutputDataSink->Put(c);
         }
@@ -113,6 +117,12 @@ struct CTransportationPlannerCommandLine::SImplementation{
         if (hours == 0 && seconds == 0){ //If no hours and seconds, just write the minutes directly
             outputstring = "Fastest path takes " + std::to_string(minutes) + " min." + "\n";
         }
+        else if (hours == 0 && minutes == 0){ //If no hours and minutes, just write the seconds directly
+            outputstring = "Fastest path takes " + std::to_string(seconds) + " sec." + "\n";
+        }
+        else if (hours == 0){ //If no hours, just write the minutes and seconds
+            outputstring = "Fastest path takes " + std::to_string(minutes) + " min " + std::to_string(seconds) + " sec." + "\n";
+        }
         else{ //If hours, minutes, and seconds all exist, write all of their data 
             outputstring = "Fastest path takes " + std::to_string(hours) + " hr " + std::to_string(minutes) + " min " + std::to_string(seconds) + " sec." + "\n";
         }
@@ -130,7 +140,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
             }
         }
         else{
-            DTransportationPlanner->GetPathDescription(steps, desc); //Gete the PathDescription and write to the OutputWink
+            DTransportationPlanner->GetPathDescription(steps, desc); //Gets the PathDescription and write to the OutputSink
             for(std::string s: desc){
                 for(char c: s){
                     DOutputDataSink->Put(c);
@@ -235,7 +245,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
                 
                 int id;
                 try{
-                    id = std::stoi(commandsplit[1]);
+                    id = std::stoull(commandsplit[1]);
                 }
                 catch(const std::invalid_argument&){ //Try and see if the node paramter is an int by catching the error during conversion
                     std::string outputstring = "Invalid node parameter, see help.\n";
@@ -262,7 +272,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
                 CTransportationPlanner::TNodeID s;
                 CTransportationPlanner::TNodeID d;
                 try{
-                    s = std::stoi(commandsplit[1]);
+                    s = std::stoull(commandsplit[1]);
                 }
                 catch(const std::invalid_argument&){ //Try and see if the first Shortest parameter is an int by catching the error during conversion
                     std::string outputstring = "Invalid shortest parameter, see help.\n";
@@ -272,7 +282,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
                     continue;
                 }
                 try{
-                    d = std::stoi(commandsplit[2]); //Try and see if the second Shortest parameter is an int by catching the error during conversion
+                    d = std::stoull(commandsplit[2]); //Try and see if the second Shortest parameter is an int by catching the error during conversion
                 }
                 catch(const std::invalid_argument&){
                     std::string outputstring = "Invalid shortest parameter, see help.\n";
@@ -299,7 +309,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
                 CTransportationPlanner::TNodeID s;
                 CTransportationPlanner::TNodeID d;
                 try{
-                    s = std::stoi(commandsplit[1]);
+                    s = std::stoull(commandsplit[1]);
                 }
                 catch(const std::invalid_argument&){ //Try and see if the first Fastest parameter is an int by catching the error during conversion
                     std::string outputstring = "Invalid fastest parameter, see help.\n";
@@ -309,7 +319,7 @@ struct CTransportationPlannerCommandLine::SImplementation{
                     continue;
                 }
                 try{
-                    d = std::stoi(commandsplit[2]);
+                    d = std::stoull(commandsplit[2]);
                 }
                 catch(const std::invalid_argument&){ //Try and see if the first Fastest parameter is an int by catching the error during conversion
                     std::string outputstring = "Invalid fastest parameter, see help.\n";
@@ -347,7 +357,6 @@ CTransportationPlannerCommandLine::CTransportationPlannerCommandLine(std::shared
 }
 
 CTransportationPlannerCommandLine::~CTransportationPlannerCommandLine(){
-
 }
 
 bool CTransportationPlannerCommandLine::ProcessCommands(){
